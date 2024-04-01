@@ -101,6 +101,10 @@ public class GlacialStaffItem extends IceMagusRodItem {
 		if (!world.isClientSide) {
 			BlockPos playerPos = player.blockPosition();
 			for (BlockPos pos : getBlockLocations(staff)) {
+				if (!world.isLoaded(pos)) {
+					continue;
+				}
+
 				int xOff = Math.abs(playerPos.getX() - pos.getX());
 				int yOff = Math.abs(playerPos.getY() - pos.getY());
 				int zOff = Math.abs(playerPos.getZ() - pos.getZ());
