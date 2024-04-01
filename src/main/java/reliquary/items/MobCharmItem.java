@@ -31,8 +31,7 @@ import reliquary.util.NBTHelper;
 import reliquary.util.WorldHelper;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class MobCharmItem extends ItemBase {
@@ -216,18 +215,34 @@ public class MobCharmItem extends ItemBase {
 	}
 
 	public static class CharmInventoryHandler {
-		public boolean playerHasMobCharm(Player player, MobCharmDefinition charmDefinition) {
-			String registryName = charmDefinition.getRegistryName();
+		private static long lastCharmCacheTime = -1;
+		private static final Map<UUID, Set<String>> charmsInInventoryCache = new HashMap<>();
 
+		protected Set<String> getCharmRegistryNames(Player player) {
+			Set<String> ret = new HashSet<>();
 			for (ItemStack slotStack : player.getInventory().items) {
 				if (slotStack.isEmpty()) {
 					continue;
 				}
-				if (ModItems.MOB_CHARM.get().isCharmOrBeltFor(slotStack, registryName)) {
-					return true;
+				if (slotStack.getItem() == ModItems.MOB_CHARM.get()) {
+					ret.add(getEntityRegistryName(slotStack));
+				}
+				if (slotStack.getItem() == ModItems.MOB_CHARM_BELT.get()) {
+					ret.addAll(ModItems.MOB_CHARM_BELT.get().getCharmRegistryNames(slotStack));
 				}
 			}
-			return false;
+			return ret;
+		}
+
+		public boolean playerHasMobCharm(Player player, MobCharmDefinition charmDefinition) {
+			String registryName = charmDefinition.getRegistryName();
+
+			if (lastCharmCacheTime != player.level().getGameTime()) {
+				lastCharmCacheTime = player.level().getGameTime();
+				charmsInInventoryCache.clear();
+				charmsInInventoryCache.put(player.getUUID(), getCharmRegistryNames(player));
+			}
+			return charmsInInventoryCache.get(player.getUUID()).contains(registryName);
 		}
 
 		public boolean damagePlayersMobCharm(ServerPlayer player, String entityRegistryName) {

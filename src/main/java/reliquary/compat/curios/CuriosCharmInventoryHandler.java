@@ -4,26 +4,25 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import reliquary.init.ModItems;
-import reliquary.items.MobCharmDefinition;
 import reliquary.items.MobCharmItem;
 import reliquary.items.util.ICuriosItem;
 import top.theillusivec4.curios.api.CuriosApi;
 
+import java.util.Set;
+
 public class CuriosCharmInventoryHandler extends MobCharmItem.CharmInventoryHandler {
 	@Override
-	public boolean playerHasMobCharm(Player player, MobCharmDefinition charmDefinition) {
-		if (super.playerHasMobCharm(player, charmDefinition)) {
-			return true;
-		}
-		return CuriosApi.getCuriosInventory(player).map(handler -> handler.getStacksHandler(ICuriosItem.Type.BELT.getIdentifier()).map(stackHandler -> {
+	protected Set<String> getCharmRegistryNames(Player player) {
+		Set<String> ret = super.getCharmRegistryNames(player);
+		CuriosApi.getCuriosInventory(player).flatMap(handler -> handler.getStacksHandler(ICuriosItem.Type.BELT.getIdentifier())).ifPresent(stackHandler -> {
 			for (int slot = 0; slot < stackHandler.getSlots(); slot++) {
 				ItemStack baubleStack = stackHandler.getStacks().getStackInSlot(slot);
-				if (!baubleStack.isEmpty() && baubleStack.getItem() == ModItems.MOB_CHARM_BELT.get() && ModItems.MOB_CHARM_BELT.get().hasCharm(baubleStack, charmDefinition.getRegistryName())) {
-					return true;
+				if (!baubleStack.isEmpty() && baubleStack.getItem() == ModItems.MOB_CHARM_BELT.get()) {
+					ret.addAll(ModItems.MOB_CHARM_BELT.get().getCharmRegistryNames(baubleStack));
 				}
 			}
-			return false;
-		}).orElse(false)).orElse(false);
+		});
+		return ret;
 	}
 
 	@Override
@@ -39,7 +38,7 @@ public class CuriosCharmInventoryHandler extends MobCharmItem.CharmInventoryHand
 					continue;
 				}
 
-				if (damageMobCharmInBelt((ServerPlayer) player, entityRegistryName, baubleStack)) {
+				if (damageMobCharmInBelt(player, entityRegistryName, baubleStack)) {
 					return true;
 				}
 			}
