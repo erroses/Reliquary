@@ -104,10 +104,16 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 	}
 
 	private void decreasePlayerExperience(Player player, int pointsToRemove) {
-		player.totalExperience = XpHelper.getTotalPlayerExperience(player) - pointsToRemove;
+		correctTotalExperience(player);
+		player.totalExperience -= pointsToRemove;
 		int newLevel = XpHelper.getLevelForExperience(player.totalExperience);
 		player.experienceLevel = newLevel;
 		player.experienceProgress = (float) (player.totalExperience - XpHelper.getExperienceForLevel(newLevel)) / player.getXpNeededForNextLevel();
+	}
+
+	private static void correctTotalExperience(Player player) {
+		//even vanilla doesn't seem to update this value properly when removing levels for enchanting / in anvil so fixing before working with it
+		player.totalExperience = XpHelper.getExperienceForLevel(player.experienceLevel) + (int) (XpHelper.getExperienceLimitOnLevel(player.experienceLevel) * player.experienceProgress);
 	}
 
 	private void decreaseMedallionExperience(ItemStack stack, int experience) {
