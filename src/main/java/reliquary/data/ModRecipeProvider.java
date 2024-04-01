@@ -24,7 +24,6 @@ import reliquary.crafting.conditions.*;
 import reliquary.init.ModBlocks;
 import reliquary.init.ModItems;
 import reliquary.items.BulletItem;
-import reliquary.items.ItemBase;
 import reliquary.items.MagazineItem;
 import reliquary.reference.Reference;
 import reliquary.util.RegistryHelper;
@@ -1025,6 +1024,19 @@ public class ModRecipeProvider extends RecipeProvider {
 						.define('I', Tags.Items.INGOTS_IRON)
 						.unlockedBy("has_rotten_flesh", has(Items.ROTTEN_FLESH))
 		);
+
+		addCraftableMobDropRecipe(recipeOutput, ModItems.WITCH_HAT.get(), builder ->
+				builder
+						.pattern("SLS")
+						.pattern("RGR")
+						.pattern("TLT")
+						.define('S', Items.SUGAR)
+						.define('L', Tags.Items.DUSTS_GLOWSTONE)
+						.define('R', Tags.Items.DUSTS_REDSTONE)
+						.define('T', Items.STICK)
+						.define('G', Tags.Items.INGOTS_GOLD)
+						.unlockedBy("has_glowstone", has(Tags.Items.DUSTS_GLOWSTONE))
+		);
 	}
 
 	private void registerIngredientRecipes(RecipeOutput recipeOutput) {
@@ -1204,7 +1216,7 @@ public class ModRecipeProvider extends RecipeProvider {
 		return inventoryTrigger(ItemPredicate.Builder.item().of(tag).build());
 	}
 
-	private void addCraftableMobDropRecipe(RecipeOutput recipeOutput, ItemBase item, Consumer<ShapedRecipeBuilder> setRecipe) {
+	private void addCraftableMobDropRecipe(RecipeOutput recipeOutput, Item item, Consumer<ShapedRecipeBuilder> setRecipe) {
 		ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(RecipeCategory.MISC, item);
 		setRecipe.accept(builder);
 		builder.save(recipeOutput.withConditions(new MobDropsCraftableCondition()), RegistryHelper.getRegistryName(item));
