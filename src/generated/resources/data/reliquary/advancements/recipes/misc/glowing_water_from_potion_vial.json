@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_empty_potion_vial",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_empty_potion_vial"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:glowing_water_from_potion_vial"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

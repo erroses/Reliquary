@@ -26,7 +26,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import reliquary.blocks.tile.ApothecaryCauldronBlockEntity;
 import reliquary.init.ModBlocks;
 import reliquary.items.ICreativeTabItemGenerator;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.BlockEntityHelper;
 import reliquary.util.WorldHelper;
 
@@ -65,7 +65,7 @@ public class ApothecaryCauldronBlock extends Block implements EntityBlock, ICrea
 
 	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
-		if (Boolean.TRUE.equals(Settings.COMMON.disable.disablePotions.get())) {
+		if (Boolean.TRUE.equals(Config.COMMON.disable.disablePotions.get())) {
 			return;
 		}
 		itemConsumer.accept(new ItemStack(this));

@@ -71,7 +71,7 @@ public class VoidTearModel implements BakedModel {
 			@Override
 			public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel world, @Nullable LivingEntity entity, int seed) {
 				if (Screen.hasShiftDown()) {
-					ItemStack containedStack = VoidTearItem.getTearContents(stack, true);
+					ItemStack containedStack = VoidTearItem.getTearContents(stack);
 					if (!containedStack.isEmpty()) {
 						BakedModel bakedModel = Minecraft.getInstance().getItemRenderer().getModel(containedStack, world, entity, seed);
 						if (!bakedModel.isCustomRenderer()) {

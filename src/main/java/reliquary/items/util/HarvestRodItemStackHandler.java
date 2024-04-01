@@ -5,8 +5,8 @@ import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraftforge.common.IPlantable;
-import reliquary.reference.Settings;
+import net.neoforged.neoforge.common.IPlantable;
+import reliquary.reference.Config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +17,8 @@ public class HarvestRodItemStackHandler extends FilteredItemStackHandler {
 
 	private static List<FilteredItemStack> getDefaultStacks() {
 		List<FilteredItemStack> stacks = new ArrayList<>();
-		stacks.add(new FilteredItemStack(Items.BONE_MEAL, Settings.COMMON.items.harvestRod.boneMealLimit.get(),
-				Settings.COMMON.items.harvestRod.boneMealWorth.get(), false));
+		stacks.add(new FilteredItemStack(Items.BONE_MEAL, Config.COMMON.items.harvestRod.boneMealLimit.get(),
+				Config.COMMON.items.harvestRod.boneMealWorth.get(), false));
 		return stacks;
 	}
 
@@ -29,7 +29,7 @@ public class HarvestRodItemStackHandler extends FilteredItemStackHandler {
 
 	@Override
 	protected int getDynamicStackLimit() {
-		return Settings.COMMON.items.harvestRod.maxCapacityPerPlantable.get();
+		return Config.COMMON.items.harvestRod.maxCapacityPerPlantable.get();
 	}
 
 	@Override

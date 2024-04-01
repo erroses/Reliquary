@@ -5,10 +5,8 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import reliquary.items.util.IPotionItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.TooltipBuilder;
 import reliquary.util.potions.PotionEssence;
 import reliquary.util.potions.PotionMap;
@@ -31,7 +29,6 @@ public class BulletItem extends ItemBase implements IPotionItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
 		TooltipBuilder tooltipBuilder = TooltipBuilder.of(tooltip);
 		if (hasTooltip) {
@@ -42,13 +39,13 @@ public class BulletItem extends ItemBase implements IPotionItem {
 
 	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
-		if (Boolean.TRUE.equals(Settings.COMMON.disable.disableHandgun.get())) {
+		if (Boolean.TRUE.equals(Config.COMMON.disable.disableHandgun.get())) {
 			return;
 		}
 
 		itemConsumer.accept(new ItemStack(this));
 
-		if (!addPotionBulletsInItemGroup || Boolean.TRUE.equals(Settings.COMMON.disable.disablePotions.get())) {
+		if (!addPotionBulletsInItemGroup || Boolean.TRUE.equals(Config.COMMON.disable.disablePotions.get())) {
 			return;
 		}
 

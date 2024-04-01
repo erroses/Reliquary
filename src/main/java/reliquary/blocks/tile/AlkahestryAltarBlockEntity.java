@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import reliquary.blocks.AlkahestryAltarBlock;
 import reliquary.init.ModBlocks;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.WorldHelper;
 
 public class AlkahestryAltarBlockEntity extends BlockEntityBase {
@@ -36,9 +36,9 @@ public class AlkahestryAltarBlockEntity extends BlockEntityBase {
 
 	public void startCycle(Level level) {
 		//grabs the cycle time from the configs
-		int defaultCycleTime = Settings.COMMON.blocks.altar.timeInMinutes.get() * 60 * 20;
-		int maximumVariance = Settings.COMMON.blocks.altar.maximumTimeVarianceInMinutes.get() * 60 * 20;
-		cycleTime = (int) (defaultCycleTime + (double) maximumVariance * level.random.nextGaussian());
+		int defaultCycleTime = Config.COMMON.blocks.altar.timeInMinutes.get() * 60 * 20;
+		int maximumVariance = Config.COMMON.blocks.altar.maximumTimeVarianceInMinutes.get() * 60 * 20;
+		cycleTime = (int) (defaultCycleTime + maximumVariance * level.random.nextGaussian());
 		redstoneCount = 0;
 		isActive = true;
 	}
@@ -72,7 +72,7 @@ public class AlkahestryAltarBlockEntity extends BlockEntityBase {
 	}
 
 	private static int getRedstoneCost() {
-		return Settings.COMMON.blocks.altar.redstoneCost.get();
+		return Config.COMMON.blocks.altar.redstoneCost.get();
 	}
 
 	public int getRedstoneCount() {

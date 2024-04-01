@@ -1,7 +1,6 @@
 package reliquary.blocks.tile;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -10,10 +9,8 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import reliquary.compat.jade.provider.IJadeDataChangeIndicator;
 import reliquary.init.ModBlocks;
 import reliquary.init.ModItems;
@@ -22,7 +19,6 @@ import reliquary.util.WorldHelper;
 import reliquary.util.potions.PotionIngredient;
 import reliquary.util.potions.XRPotionHelper;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -160,14 +156,8 @@ public class ApothecaryMortarBlockEntity extends BlockEntityBase implements IJad
 		return ret;
 	}
 
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER) {
-			return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> items));
-		}
-
-		return super.getCapability(cap, side);
+	public IItemHandler getItems() {
+		return items;
 	}
 
 	public void dropItems(Level level) {

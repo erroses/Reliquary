@@ -9,11 +9,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import reliquary.items.util.ICuriosItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.InventoryHelper;
 import reliquary.util.MobHelper;
 
@@ -22,8 +22,8 @@ import javax.annotation.Nullable;
 public class TwilightCloakItem extends ToggleableItem implements ICuriosItem {
 	public TwilightCloakItem() {
 		super(new Properties().stacksTo(1));
-		MinecraftForge.EVENT_BUS.addListener(this::onEntityTargetedEvent);
-		MinecraftForge.EVENT_BUS.addListener(this::onLivingUpdate);
+		NeoForge.EVENT_BUS.addListener(this::onEntityTargetedEvent);
+		NeoForge.EVENT_BUS.addListener(this::onLivingUpdate);
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class TwilightCloakItem extends ToggleableItem implements ICuriosItem {
 
 		//toggled effect, makes player invisible based on light level (configurable)
 
-		if (player.level().getMaxLocalRawBrightness(player.blockPosition()) > Settings.COMMON.items.twilightCloak.maxLightLevel.get()) {
+		if (player.level().getMaxLocalRawBrightness(player.blockPosition()) > Config.COMMON.items.twilightCloak.maxLightLevel.get()) {
 			return;
 		}
 
@@ -69,7 +69,7 @@ public class TwilightCloakItem extends ToggleableItem implements ICuriosItem {
 
 	private void onEntityTargetedEvent(LivingChangeTargetEvent event) {
 		if (shouldResetTarget(event.getNewTarget())) {
-			event.setNewTarget(null);
+			event.setCanceled(true);
 		}
 	}
 
@@ -88,6 +88,6 @@ public class TwilightCloakItem extends ToggleableItem implements ICuriosItem {
 			return false;
 		}
 
-		return InventoryHelper.playerHasItem(player, this, true, Type.BODY) && player.level().getMaxLocalRawBrightness(player.blockPosition()) <= Settings.COMMON.items.twilightCloak.maxLightLevel.get();
+		return InventoryHelper.playerHasItem(player, this, true, Type.BODY) && player.level().getMaxLocalRawBrightness(player.blockPosition()) <= Config.COMMON.items.twilightCloak.maxLightLevel.get();
 	}
 }

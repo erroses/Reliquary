@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_withered_rib",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_withered_rib"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/wither_skeleton_skull"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

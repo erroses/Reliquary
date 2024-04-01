@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_zombie_heart",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_zombie_heart"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/gold_nugget"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

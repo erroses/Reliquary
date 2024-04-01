@@ -4,8 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
@@ -21,19 +19,12 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.event.ForgeEventFactory;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
+import net.neoforged.neoforge.event.EventHooks;
 import reliquary.init.ModEntities;
 
 @SuppressWarnings("squid:S2160")
-@OnlyIn(
-		value = Dist.CLIENT,
-		_interface = ItemSupplier.class
-)
-public class EnderStaffProjectileEntity extends ThrowableProjectile implements ItemSupplier, IEntityAdditionalSpawnData {
+public class EnderStaffProjectileEntity extends ThrowableProjectile implements ItemSupplier, IEntityWithComplexSpawn {
 	public EnderStaffProjectileEntity(EntityType<EnderStaffProjectileEntity> entityType, Level world) {
 		super(entityType, world);
 	}
@@ -127,7 +118,7 @@ public class EnderStaffProjectileEntity extends ThrowableProjectile implements I
 			float targetY = y + 0.5F;
 			float targetZ = z + 0.5F;
 			if (thrower instanceof ServerPlayer serverPlayer) {
-				ForgeEventFactory.onEnderPearlLand(serverPlayer, targetX, targetY, targetZ, new ThrownEnderpearl(level(), serverPlayer), 0, result);
+				EventHooks.onEnderPearlLand(serverPlayer, targetX, targetY, targetZ, new ThrownEnderpearl(level(), serverPlayer), 0, result);
 			}
 
 			thrower.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0f, 1.0f);
@@ -139,11 +130,6 @@ public class EnderStaffProjectileEntity extends ThrowableProjectile implements I
 	@Override
 	public ItemStack getItem() {
 		return new ItemStack(Items.ENDER_PEARL);
-	}
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 
 	@Override

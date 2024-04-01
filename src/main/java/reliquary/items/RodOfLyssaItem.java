@@ -7,7 +7,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import reliquary.entities.LyssaHook;
@@ -35,8 +34,8 @@ public class RodOfLyssaItem extends ItemBase {
 
 			if (!level.isClientSide) {
 
-				int lureLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FISHING_SPEED, stack);
-				int luckOfTheSeaLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FISHING_LUCK, stack);
+				int lureLevel = stack.getEnchantmentLevel(Enchantments.FISHING_SPEED);
+				int luckOfTheSeaLevel = stack.getEnchantmentLevel(Enchantments.FISHING_LUCK);
 
 				LyssaHook hook = new LyssaHook(level, player, lureLevel, luckOfTheSeaLevel);
 				level.addFreshEntity(hook);

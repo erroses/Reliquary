@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_emperor_chalice",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_emperor_chalice"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:infernal_chalice"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

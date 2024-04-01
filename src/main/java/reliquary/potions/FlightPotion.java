@@ -4,19 +4,25 @@ import net.minecraft.network.protocol.game.ClientboundPlayerAbilitiesPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
+import org.jetbrains.annotations.Nullable;
 import reliquary.init.ModPotions;
 
 public class FlightPotion extends MobEffect {
 
 	public FlightPotion() {
-		super(MobEffectCategory.BENEFICIAL, 0);
+		super(MobEffectCategory.BENEFICIAL, 0xFFFFFF);
+		NeoForge.EVENT_BUS.addListener(this::onEffectExpired);
+		NeoForge.EVENT_BUS.addListener(this::onEffectRemoved);
 	}
 
 	@Override
-	public boolean isDurationEffectTick(int duration, int amplifier) {
+	public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
 		return true;
 	}
 
@@ -34,14 +40,24 @@ public class FlightPotion extends MobEffect {
 	}
 
 	@Override
-	public void removeAttributeModifiers(LivingEntity entityLivingBase, AttributeMap attributeMap, int amplifier) {
-		super.removeAttributeModifiers(entityLivingBase, attributeMap, amplifier);
+	public void removeAttributeModifiers(AttributeMap pAttributeMap) {
+		super.removeAttributeModifiers(pAttributeMap);
+	}
 
-		if (!(entityLivingBase instanceof Player player)) {
+	private void onEffectExpired(MobEffectEvent.Expired event) {
+		removeFlight(event.getEntity(), event.getEffectInstance());
+	}
+
+	private void onEffectRemoved(MobEffectEvent.Remove event) {
+		removeFlight(event.getEntity(), event.getEffectInstance());
+	}
+
+	private static void removeFlight(LivingEntity entity, @Nullable MobEffectInstance effectInstance) {
+		if (effectInstance == null || effectInstance.getEffect() != ModPotions.FLIGHT_POTION.get()) {
 			return;
 		}
 
-		if (player.hasEffect(ModPotions.FLIGHT_POTION.get())) {
+		if (!(entity instanceof Player player)) {
 			return;
 		}
 

@@ -4,8 +4,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -23,16 +21,9 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.world.phys.*;
 import reliquary.init.ModEntities;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.RegistryHelper;
 import reliquary.util.potions.XRPotionHelper;
 
@@ -111,17 +102,6 @@ public abstract class ShotEntityBase extends Projectile {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void lerpTo(double x, double y, double z, float yaw, float pitch, int posRotationIncrements, boolean teleport) {
-		setPos(x, y, z);
-		setRot(yaw, pitch);
-	}
-
-	/**
-	 * Sets the velocity to the args. Args: x, y, z
-	 */
-	@Override
-	@OnlyIn(Dist.CLIENT)
 	public void lerpMotion(double motionX, double motionY, double motionZ) {
 		setDeltaMovement(motionX, motionY, motionZ);
 
@@ -265,7 +245,6 @@ public abstract class ShotEntityBase extends Projectile {
 		return MovementEmission.NONE;
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean shouldRenderAtSqrDistance(double distance) {
 		double d0 = 64.0D;
@@ -376,10 +355,14 @@ public abstract class ShotEntityBase extends Projectile {
 			scheduledForDeath = true;
 			for (int particles = 0; particles < 4; particles++) {
 				switch (sideHit) {
-					case DOWN -> level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), gaussian(0.1D), -gaussian(0.1D), gaussian(0.1D));
-					case UP, SOUTH, EAST -> level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), gaussian(0.1D), gaussian(0.1D), gaussian(0.1D));
-					case NORTH -> level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), gaussian(0.1D), gaussian(0.1D), -gaussian(0.1D));
-					case WEST -> level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), -gaussian(0.1D), gaussian(0.1D), gaussian(0.1D));
+					case DOWN ->
+							level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), gaussian(0.1D), -gaussian(0.1D), gaussian(0.1D));
+					case UP, SOUTH, EAST ->
+							level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), gaussian(0.1D), gaussian(0.1D), gaussian(0.1D));
+					case NORTH ->
+							level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), gaussian(0.1D), gaussian(0.1D), -gaussian(0.1D));
+					case WEST ->
+							level().addParticle(ParticleTypes.SMOKE, getX(), getY(), getZ(), -gaussian(0.1D), gaussian(0.1D), gaussian(0.1D));
 					default -> {/*noop*/}
 				}
 			}
@@ -393,7 +376,7 @@ public abstract class ShotEntityBase extends Projectile {
 	 */
 	void seekTarget() {
 		Entity closestTarget = null;
-		List<String> huntableEntitiesBlacklist = Settings.COMMON.items.seekerShot.huntableEntitiesBlacklist.get();
+		List<String> huntableEntitiesBlacklist = Config.COMMON.items.seekerShot.huntableEntitiesBlacklist.get();
 		List<Entity> targetsList = level().getEntities(this,
 				new AABB(getX() - 5, getY() - 5, getZ() - 5, getX() + 5, getY() + 5, getZ() + 5),
 				Mob.class::isInstance);
@@ -514,9 +497,4 @@ public abstract class ShotEntityBase extends Projectile {
 	// used by the renderer to pull the shot texture directly from the entity.
 	// This might not work.
 	public abstract ResourceLocation getShotTexture();
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
-	}
 }

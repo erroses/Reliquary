@@ -2,6 +2,7 @@ package reliquary.util.potions;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -12,19 +13,11 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import reliquary.items.PotionEssenceItem;
 import reliquary.util.RegistryHelper;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class XRPotionHelper {
 
@@ -221,7 +214,7 @@ public class XRPotionHelper {
 				continue;
 			}
 
-			MobEffect potion = ForgeRegistries.MOB_EFFECTS.getValue(potionName);
+			MobEffect potion = BuiltInRegistries.MOB_EFFECT.get(potionName);
 			if (potion != null) {
 				combinedEffects.add(new MobEffectInstance(potion, duration, amplifier));
 			}
@@ -300,7 +293,7 @@ public class XRPotionHelper {
 			int duration = effect.getInt("duration");
 			int potency = effect.getInt("potency");
 			//noinspection ConstantConditions
-			ret.add(new MobEffectInstance(ForgeRegistries.MOB_EFFECTS.getValue(new ResourceLocation(registryName)), duration, potency));
+			ret.add(new MobEffectInstance(BuiltInRegistries.MOB_EFFECT.get(new ResourceLocation(registryName)), duration, potency));
 		}
 
 		return ret;

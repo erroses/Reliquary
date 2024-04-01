@@ -12,11 +12,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Vector3f;
 import reliquary.entities.SpecialSnowballEntity;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.TooltipBuilder;
 
@@ -31,7 +29,6 @@ public class IceMagusRodItem extends ToggleableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack rod, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		tooltipBuilder.charge(this, ".tooltip2", getSnowballCharge(rod));
 		if (isEnabled(rod)) {
@@ -51,15 +48,15 @@ public class IceMagusRodItem extends ToggleableItem {
 	}
 
 	private int getSnowballCap() {
-		return this instanceof GlacialStaffItem ? Settings.COMMON.items.glacialStaff.snowballLimit.get() : Settings.COMMON.items.iceMagusRod.snowballLimit.get();
+		return this instanceof GlacialStaffItem ? Config.COMMON.items.glacialStaff.snowballLimit.get() : Config.COMMON.items.iceMagusRod.snowballLimit.get();
 	}
 
 	int getSnowballCost() {
-		return this instanceof GlacialStaffItem ? Settings.COMMON.items.glacialStaff.snowballCost.get() : Settings.COMMON.items.iceMagusRod.snowballCost.get();
+		return this instanceof GlacialStaffItem ? Config.COMMON.items.glacialStaff.snowballCost.get() : Config.COMMON.items.iceMagusRod.snowballCost.get();
 	}
 
 	private int getSnowballWorth() {
-		return this instanceof GlacialStaffItem ? Settings.COMMON.items.glacialStaff.snowballWorth.get() : Settings.COMMON.items.iceMagusRod.snowballWorth.get();
+		return this instanceof GlacialStaffItem ? Config.COMMON.items.glacialStaff.snowballWorth.get() : Config.COMMON.items.iceMagusRod.snowballWorth.get();
 	}
 
 	@Override

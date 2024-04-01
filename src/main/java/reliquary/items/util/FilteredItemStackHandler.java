@@ -4,12 +4,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FilteredItemStackHandler implements IItemHandler, IItemHandlerModifiable, INBTSerializable<CompoundTag> {
@@ -17,7 +19,12 @@ public class FilteredItemStackHandler implements IItemHandler, IItemHandlerModif
 	private final List<FilteredItemStack> filteredItemStacks;
 	private static final String NOT_IN_RANGE_ERROR = "%s %d not in valid range - (0, %d)";
 
-	FilteredItemStackHandler(List<FilteredItemStack> filteredItemStacks) {
+	public FilteredItemStackHandler(FilteredItemStack... filteredItemStacks) {
+		this.filteredItemStacks = new ArrayList<>();
+		Collections.addAll(this.filteredItemStacks, filteredItemStacks);
+	}
+
+	public FilteredItemStackHandler(List<FilteredItemStack> filteredItemStacks) {
 		this.filteredItemStacks = filteredItemStacks;
 	}
 
@@ -33,6 +40,7 @@ public class FilteredItemStackHandler implements IItemHandler, IItemHandlerModif
 		validateStackSlot(stackSlot);
 		return filteredItemStacks.get(stackSlot).getCount();
 	}
+
 
 	private void validateStackSlot(int stackSlot) {
 		if (stackSlot < 0 || stackSlot >= filteredItemStacks.size()) {

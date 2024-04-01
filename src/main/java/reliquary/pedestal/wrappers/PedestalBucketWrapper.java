@@ -14,15 +14,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.IFluidBlock;
-import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.IFluidBlock;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import reliquary.api.IPedestal;
 import reliquary.api.IPedestalActionItemWrapper;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -39,14 +39,14 @@ public class PedestalBucketWrapper implements IPedestalActionItemWrapper {
 	@Override
 	public void update(ItemStack stack, Level level, IPedestal pedestal) {
 		BlockPos pos = pedestal.getBlockPosition();
-		int bucketRange = Settings.COMMON.blocks.pedestal.bucketWrapperRange.get();
+		int bucketRange = Config.COMMON.blocks.pedestal.bucketWrapperRange.get();
 
 		if (!milkCows(level, pedestal, pos, bucketRange, stack) && !drainLiquid(level, pedestal, pos, bucketRange)) {
-			pedestal.setActionCoolDown(2 * Settings.COMMON.blocks.pedestal.bucketWrapperCooldown.get());
+			pedestal.setActionCoolDown(2 * Config.COMMON.blocks.pedestal.bucketWrapperCooldown.get());
 			return;
 		}
 
-		pedestal.setActionCoolDown(Settings.COMMON.blocks.pedestal.bucketWrapperCooldown.get());
+		pedestal.setActionCoolDown(Config.COMMON.blocks.pedestal.bucketWrapperCooldown.get());
 	}
 
 	@Override
@@ -177,7 +177,7 @@ public class PedestalBucketWrapper implements IPedestalActionItemWrapper {
 
 		//put milk in the adjacent tanks
 		if (fakePlayer.getItemInHand(InteractionHand.MAIN_HAND).getItem() == Items.MILK_BUCKET) {
-			int fluidAdded = pedestal.fillConnectedTank(new FluidStack(ForgeMod.MILK.get(), FluidType.BUCKET_VOLUME));
+			int fluidAdded = pedestal.fillConnectedTank(new FluidStack(NeoForgeMod.MILK.get(), FluidType.BUCKET_VOLUME));
 			//replace bucket in the pedestals with milk one if the tanks can't hold it
 			if (fluidAdded == 0) {
 				if (stack.getCount() == 1) {

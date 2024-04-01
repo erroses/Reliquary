@@ -10,7 +10,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import reliquary.entities.XRTippedArrowEntity;
 import reliquary.items.util.IPotionItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.TooltipBuilder;
 import reliquary.util.potions.PotionEssence;
 import reliquary.util.potions.PotionMap;
@@ -27,14 +27,14 @@ public class TippedArrowItem extends ArrowItem implements IPotionItem, ICreative
 
 	@Override
 	public AbstractArrow createArrow(Level world, ItemStack stack, LivingEntity shooter) {
-		XRTippedArrowEntity entitytippedarrow = new XRTippedArrowEntity(world, shooter);
+		XRTippedArrowEntity entitytippedarrow = new XRTippedArrowEntity(world, shooter, stack);
 		entitytippedarrow.setPotionEffect(stack);
 		return entitytippedarrow;
 	}
 
 	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
-		if (Boolean.TRUE.equals(Settings.COMMON.disable.disablePotions.get())) {
+		if (Boolean.TRUE.equals(Config.COMMON.disable.disablePotions.get())) {
 			return;
 		}
 

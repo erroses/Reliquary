@@ -1,3 +1,4 @@
+/*
 package reliquary.crafting;
 
 import com.google.common.collect.Lists;
@@ -28,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class NbtShapedRecipeBuilder {
+public class NbtShapedRecipeBuilder { shouldn't be necessary anymore'
 	private final Item result;
 	private final int count;
 	private final List<String> pattern = Lists.newArrayList();
@@ -221,3 +222,4 @@ public class NbtShapedRecipeBuilder {
 		}
 	}
 }
+*/

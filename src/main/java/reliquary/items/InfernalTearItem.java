@@ -13,12 +13,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import reliquary.reference.Config;
 import reliquary.reference.Reference;
-import reliquary.reference.Settings;
 import reliquary.util.InventoryHelper;
 import reliquary.util.NBTHelper;
 import reliquary.util.RegistryHelper;
@@ -54,7 +52,7 @@ public class InfernalTearItem extends ToggleableItem {
 			return;
 		}
 
-		Optional<Integer> experience = Settings.COMMON.items.infernalTear.getItemExperience(RegistryHelper.getItemRegistryName(tearStack.getItem()));
+		Optional<Integer> experience = Config.COMMON.items.infernalTear.getItemExperience(RegistryHelper.getItemRegistryName(tearStack.getItem()));
 		if (experience.isEmpty()) {
 			resetTear(stack);
 			return;
@@ -85,7 +83,6 @@ public class InfernalTearItem extends ToggleableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack stack, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		ItemStack contents = getStackFromTear(stack);
 		String itemName = contents.getHoverName().getString();
@@ -144,7 +141,8 @@ public class InfernalTearItem extends ToggleableItem {
 
 		//if user is sneaking or just enabled the tear, let's fill it
 		if (player.isShiftKeyDown() || !isEnabled(itemStack)) {
-			ItemStack returnStack = InventoryHelper.getItemHandlerFrom(player).map(handler -> buildTear(itemStack, handler)).orElse(ItemStack.EMPTY);
+			IItemHandler playerInventory = InventoryHelper.getItemHandlerFrom(player);
+			ItemStack returnStack = buildTear(itemStack, playerInventory);
 			if (!returnStack.isEmpty()) {
 				return new InteractionResultHolder<>(InteractionResult.SUCCESS, returnStack);
 			}
@@ -168,7 +166,7 @@ public class InfernalTearItem extends ToggleableItem {
 
 		setTearTarget(tear, target);
 
-		if (Boolean.TRUE.equals(Settings.COMMON.items.infernalTear.absorbWhenCreated.get())) {
+		if (Boolean.TRUE.equals(Config.COMMON.items.infernalTear.absorbWhenCreated.get())) {
 			NBTHelper.putBoolean(ENABLED_TAG, stack, true);
 		}
 
@@ -185,7 +183,7 @@ public class InfernalTearItem extends ToggleableItem {
 		for (int slot = 0; slot < inventory.getSlots(); slot++) {
 			ItemStack stack = inventory.getStackInSlot(slot);
 			if (stack.isEmpty() || self.getItem() == stack.getItem() || stack.getMaxStackSize() == 1 || stack.getTag() != null
-					|| Settings.COMMON.items.infernalTear.getItemExperience(RegistryHelper.getItemRegistryName(stack.getItem())).isEmpty()) {
+					|| Config.COMMON.items.infernalTear.getItemExperience(RegistryHelper.getItemRegistryName(stack.getItem())).isEmpty()) {
 				continue;
 			}
 			if (InventoryHelper.getItemQuantity(stack, inventory) > itemQuantity) {

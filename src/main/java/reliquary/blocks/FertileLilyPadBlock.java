@@ -1,5 +1,6 @@
 package reliquary.blocks;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceKey;
@@ -10,22 +11,17 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.BushBlock;
-import net.minecraft.world.level.block.DoublePlantBlock;
-import net.minecraft.world.level.block.IceBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.IPlantable;
-import net.minecraftforge.common.PlantType;
+import net.neoforged.neoforge.common.IPlantable;
+import net.neoforged.neoforge.common.PlantType;
 import reliquary.items.ICreativeTabItemGenerator;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,6 +30,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class FertileLilyPadBlock extends BushBlock implements ICreativeTabItemGenerator {
+	public static final MapCodec<FertileLilyPadBlock> CODEC = simpleCodec(FertileLilyPadBlock::new);
 	private static final Map<ResourceKey<Level>, Long> currentDimensionTicks = new HashMap<>();
 	private static final Map<ResourceKey<Level>, Set<BlockPos>> dimensionPositionsTicked = new HashMap<>();
 	private static final VoxelShape AABB = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
@@ -44,12 +41,24 @@ public class FertileLilyPadBlock extends BushBlock implements ICreativeTabItemGe
 	}
 
 	public FertileLilyPadBlock() {
-		super(Properties.of().mapColor(MapColor.PLANT).randomTicks());
+		super(Properties.of().mapColor(MapColor.PLANT));
+	}
+	private FertileLilyPadBlock(Properties properties) {
+		super(properties);
 	}
 
 	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
 		itemConsumer.accept(new ItemStack(this));
+	}
+
+	@Override
+	public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+		super.onPlace(state, level, pos, oldState, movedByPiston);
+
+		if (!level.isClientSide()) {
+			level.scheduleTick(pos, this, 1);
+		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -72,15 +81,15 @@ public class FertileLilyPadBlock extends BushBlock implements ICreativeTabItemGe
 	}
 
 	private int secondsBetweenGrowthTicks() {
-		return Settings.COMMON.blocks.fertileLilypad.secondsBetweenGrowthTicks.get();
+		return Config.COMMON.blocks.fertileLilypad.secondsBetweenGrowthTicks.get();
 	}
 
 	private int tileRange() {
-		return Settings.COMMON.blocks.fertileLilypad.tileRange.get();
+		return Config.COMMON.blocks.fertileLilypad.tileRange.get();
 	}
 
 	private int fullPotencyRange() {
-		return Settings.COMMON.blocks.fertileLilypad.fullPotencyRange.get();
+		return Config.COMMON.blocks.fertileLilypad.fullPotencyRange.get();
 	}
 
 	@SuppressWarnings("deprecation")
@@ -129,6 +138,11 @@ public class FertileLilyPadBlock extends BushBlock implements ICreativeTabItemGe
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
 		return AABB;
+	}
+
+	@Override
+	protected MapCodec<? extends BushBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package reliquary.client.init;
 
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import reliquary.blocks.tile.ApothecaryCauldronBlockEntity;
 import reliquary.init.ModBlocks;
 

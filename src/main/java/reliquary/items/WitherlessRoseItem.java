@@ -8,19 +8,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.MobEffectEvent;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.Event;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.living.LivingAttackEvent;
+import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import reliquary.util.InventoryHelper;
 
 public class WitherlessRoseItem extends ItemBase {
 	public WitherlessRoseItem() {
 		super(new Properties().stacksTo(1));
-		MinecraftForge.EVENT_BUS.addListener(this::preventWither);
-		MinecraftForge.EVENT_BUS.addListener(this::preventWitherAttack);
+		NeoForge.EVENT_BUS.addListener(this::preventWither);
+		NeoForge.EVENT_BUS.addListener(this::preventWitherAttack);
 	}
 
 	@Override
@@ -29,14 +27,13 @@ public class WitherlessRoseItem extends ItemBase {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public boolean isFoil(ItemStack stack) {
 		return true;
 	}
 
 	private void preventWither(MobEffectEvent.Applicable event) {
 		LivingEntity entityLiving = event.getEntity();
-		if (entityLiving instanceof Player player && event.getEffectInstance().getEffect() == MobEffects.WITHER && InventoryHelper.playerHasItem(player, this)) {
+		if (entityLiving instanceof Player player && event.getEffectInstance() != null && event.getEffectInstance().getEffect() == MobEffects.WITHER && InventoryHelper.playerHasItem(player, this)) {
 			event.setResult(Event.Result.DENY);
 			addPreventParticles((Player) entityLiving);
 		}

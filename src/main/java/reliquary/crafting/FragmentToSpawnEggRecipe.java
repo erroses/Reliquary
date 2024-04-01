@@ -1,9 +1,8 @@
 package reliquary.crafting;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -11,14 +10,12 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.Level;
 
-import javax.annotation.Nullable;
-
 public class FragmentToSpawnEggRecipe extends ShapelessRecipe {
 	public static final Serializer SERIALIZER = new Serializer();
 	private final ShapelessRecipe recipeDelegate;
 
 	public FragmentToSpawnEggRecipe(ShapelessRecipe recipeDelegate) {
-		super(recipeDelegate.getId(), recipeDelegate.getGroup(), CraftingBookCategory.MISC, recipeDelegate.result, recipeDelegate.getIngredients());
+		super(recipeDelegate.getGroup(), CraftingBookCategory.MISC, recipeDelegate.result, recipeDelegate.getIngredients());
 		this.recipeDelegate = recipeDelegate;
 	}
 
@@ -39,17 +36,16 @@ public class FragmentToSpawnEggRecipe extends ShapelessRecipe {
 	}
 
 	public static class Serializer implements RecipeSerializer<FragmentToSpawnEggRecipe> {
+		private final Codec<FragmentToSpawnEggRecipe> codec = RecipeSerializer.SHAPELESS_RECIPE.codec().xmap(FragmentToSpawnEggRecipe::new, recipe -> recipe.recipeDelegate);
 
 		@Override
-		public FragmentToSpawnEggRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			return new FragmentToSpawnEggRecipe(RecipeSerializer.SHAPELESS_RECIPE.fromJson(recipeId, json));
+		public Codec<FragmentToSpawnEggRecipe> codec() {
+			return codec;
 		}
 
-		@Nullable
 		@Override
-		public FragmentToSpawnEggRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-			//noinspection ConstantConditions - shapeless crafting recipe serializer always returns an instance here so no need to check for null
-			return new FragmentToSpawnEggRecipe(RecipeSerializer.SHAPELESS_RECIPE.fromNetwork(recipeId, buffer));
+		public FragmentToSpawnEggRecipe fromNetwork(FriendlyByteBuf buffer) {
+			return new FragmentToSpawnEggRecipe(RecipeSerializer.SHAPELESS_RECIPE.fromNetwork(buffer));
 		}
 
 		@Override

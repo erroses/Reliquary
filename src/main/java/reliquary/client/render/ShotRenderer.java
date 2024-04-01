@@ -9,8 +9,6 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import reliquary.entities.shot.ShotEntityBase;
@@ -18,7 +16,6 @@ import reliquary.entities.shot.ShotEntityBase;
 import java.util.HashMap;
 import java.util.Map;
 
-@OnlyIn(Dist.CLIENT)
 public class ShotRenderer<T extends ShotEntityBase> extends EntityRenderer<T> {
 	private final Map<EntityType<?>, RenderType> entityCutOuts = new HashMap<>();
 

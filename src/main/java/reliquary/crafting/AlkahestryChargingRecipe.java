@@ -1,12 +1,10 @@
 package reliquary.crafting;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -14,21 +12,16 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.crafting.CraftingHelper;
 import reliquary.init.ModItems;
 import reliquary.items.AlkahestryTomeItem;
-
-import javax.annotation.Nullable;
 
 public class AlkahestryChargingRecipe implements CraftingRecipe {
 	private final Ingredient chargingIngredient;
 	private final int chargeToAdd;
 	private final ItemStack recipeOutput;
-	private final ResourceLocation id;
 	private final Ingredient tomeIngredient;
 
-	private AlkahestryChargingRecipe(ResourceLocation id, Ingredient chargingIngredient, int chargeToAdd) {
-		this.id = id;
+	public AlkahestryChargingRecipe(Ingredient chargingIngredient, int chargeToAdd) {
 		this.chargingIngredient = chargingIngredient;
 		this.chargeToAdd = chargeToAdd;
 		tomeIngredient = Ingredient.of(AlkahestryTomeItem.setCharge(new ItemStack(ModItems.ALKAHESTRY_TOME.get()), 0));
@@ -109,11 +102,6 @@ public class AlkahestryChargingRecipe implements CraftingRecipe {
 	}
 
 	@Override
-	public ResourceLocation getId() {
-		return id;
-	}
-
-	@Override
 	public RecipeSerializer<?> getSerializer() {
 		return ModItems.ALKAHESTRY_CHARGING_SERIALIZER.get();
 	}
@@ -132,23 +120,21 @@ public class AlkahestryChargingRecipe implements CraftingRecipe {
 	}
 
 	public static class Serializer implements RecipeSerializer<AlkahestryChargingRecipe> {
+		private final Codec<AlkahestryChargingRecipe> codec = RecordCodecBuilder.create(
+				instance -> instance.group(
+								Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(recipe -> recipe.chargingIngredient),
+								Codec.INT.fieldOf("charge").forGetter(recipe -> recipe.chargeToAdd)
+						)
+						.apply(instance, AlkahestryChargingRecipe::new));
+
 		@Override
-		public AlkahestryChargingRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			if (!json.has("ingredient")) {
-				throw new JsonParseException("No ingredient for alkahestry charging recipe");
-			}
-
-			Ingredient ingredient = CraftingHelper.getIngredient(json.get("ingredient"), false);
-
-			int chargeToAdd = GsonHelper.getAsInt(json, "charge");
-
-			return new AlkahestryChargingRecipe(recipeId, ingredient, chargeToAdd);
+		public Codec<AlkahestryChargingRecipe> codec() {
+			return codec;
 		}
 
-		@Nullable
 		@Override
-		public AlkahestryChargingRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-			return new AlkahestryChargingRecipe(recipeId, Ingredient.fromNetwork(buffer), buffer.readInt());
+		public AlkahestryChargingRecipe fromNetwork(FriendlyByteBuf pBuffer) {
+			return new AlkahestryChargingRecipe(Ingredient.fromNetwork(pBuffer), pBuffer.readInt());
 		}
 
 		@Override

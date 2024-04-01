@@ -9,22 +9,28 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import reliquary.blocks.tile.PassivePedestalBlockEntity;
 import reliquary.items.ICreativeTabItemGenerator;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.InventoryHelper;
 import reliquary.util.WorldHelper;
 
@@ -33,8 +39,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public class PassivePedestalBlock extends Block implements EntityBlock, ICreativeTabItemGenerator {
+public class PassivePedestalBlock extends Block implements EntityBlock, ICreativeTabItemGenerator, SimpleWaterloggedBlock {
 	static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
+	static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	private static final VoxelShape SHAPE = Stream.of(
 			Block.box(4, 10, 4, 12, 11, 12),
 			Block.box(3, 0, 3, 13, 1, 13),
@@ -48,8 +55,8 @@ public class PassivePedestalBlock extends Block implements EntityBlock, ICreativ
 	).reduce((v1, v2) -> Shapes.join(v1, v2, BooleanOp.OR)).get();
 
 	public PassivePedestalBlock() {
-		super(Properties.of().mapColor(MapColor.STONE).strength(1.5F, 2.0F));
-		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+		super(Properties.of().mapColor(MapColor.STONE).strength(1.5F, 2.0F).forceSolidOn());
+		registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
 	}
 
 	@Override
@@ -62,12 +69,12 @@ public class PassivePedestalBlock extends Block implements EntityBlock, ICreativ
 	}
 
 	protected boolean isDisabled() {
-		return Boolean.TRUE.equals(Settings.COMMON.disable.disablePassivePedestal.get());
+		return Boolean.TRUE.equals(Config.COMMON.disable.disablePassivePedestal.get());
 	}
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING);
+		builder.add(FACING, WATERLOGGED);
 	}
 
 	@Nullable
@@ -76,7 +83,23 @@ public class PassivePedestalBlock extends Block implements EntityBlock, ICreativ
 		if (context.getPlayer() == null) {
 			return defaultBlockState();
 		}
-		return defaultBlockState().setValue(FACING, context.getPlayer().getDirection());
+		return defaultBlockState()
+				.setValue(FACING, context.getPlayer().getDirection())
+				.setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER);
+	}
+
+	@Override
+	public FluidState getFluidState(BlockState state) {
+		return Boolean.TRUE.equals(state.getValue(WATERLOGGED)) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
+	}
+
+	@Override
+	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor level, BlockPos currentPos, BlockPos facingPos) {
+		if (facing != Direction.DOWN && Boolean.TRUE.equals(state.getValue(WATERLOGGED))) {
+			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+		}
+
+		return super.updateShape(state, facing, facingState, level, currentPos, facingPos);
 	}
 
 	@SuppressWarnings("deprecation")
@@ -100,9 +123,11 @@ public class PassivePedestalBlock extends Block implements EntityBlock, ICreativ
 				return InteractionResult.FAIL;
 			}
 		} else {
-			return pedestal.map(ped -> InventoryHelper.getItemHandlerFrom(ped)
-					.map(itemHandler -> InventoryHelper.tryAddingPlayerCurrentItem(player, itemHandler, InteractionHand.MAIN_HAND) ? InteractionResult.SUCCESS : InteractionResult.CONSUME)
-					.orElse(InteractionResult.CONSUME)).orElse(InteractionResult.CONSUME);
+			return pedestal.map(ped ->
+					InventoryHelper.executeOnItemHandlerAt(level, pos, state, ped, itemHandler ->
+							InventoryHelper.tryAddingPlayerCurrentItem(player, itemHandler, InteractionHand.MAIN_HAND) ? InteractionResult.SUCCESS : InteractionResult.CONSUME, InteractionResult.CONSUME
+					)
+			).orElse(InteractionResult.CONSUME);
 		}
 	}
 

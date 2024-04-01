@@ -37,4 +37,5 @@ public class Reference {
 
 	//reliquary potion names
 	public static final String CURE = MOD_ID + ":cure";
+	public static final String FLIGHT = MOD_ID + ":flight";
 }

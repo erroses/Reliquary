@@ -5,33 +5,31 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.PlayPayloadContext;
 import reliquary.init.ModItems;
+import reliquary.reference.Reference;
 
-import java.util.function.Supplier;
+public class SpawnAngelheartVialParticlesPacket implements CustomPacketPayload {
+	public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "angelheart_vial_particles");
 
-@SuppressWarnings({"java:S1118", "InstantiationOfUtilityClass"}) // need to instantiate this for its type to be used as identifier for this message
-public class SpawnAngelheartVialParticlesPacket {
-	static void encode() {
+	public SpawnAngelheartVialParticlesPacket() {
 		//noop
 	}
 
-	static SpawnAngelheartVialParticlesPacket decode() {
-		return new SpawnAngelheartVialParticlesPacket();
+	public SpawnAngelheartVialParticlesPacket(FriendlyByteBuf buffer) {
+		//noop
 	}
 
-	static void onMessage(Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context context = contextSupplier.get();
-		context.enqueueWork(SpawnAngelheartVialParticlesPacket::handleMessage);
-		context.setPacketHandled(true);
+	public void handle(PlayPayloadContext context) {
+		context.workHandler().execute(this::handleMessage);
 	}
 
-	@OnlyIn(Dist.CLIENT)
-	private static void handleMessage() {
+	private void handleMessage() {
 		LocalPlayer player = Minecraft.getInstance().player;
 		if (player == null) {
 			return;
@@ -66,5 +64,15 @@ public class SpawnAngelheartVialParticlesPacket {
 				}
 			}
 		}
+	}
+
+	@Override
+	public void write(FriendlyByteBuf buffer) {
+		//noop
+	}
+
+	@Override
+	public ResourceLocation id() {
+		return ID;
 	}
 }

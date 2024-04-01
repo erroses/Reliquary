@@ -1,11 +1,14 @@
 package reliquary.items;
 
 import com.google.common.collect.ImmutableMap;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.StringRepresentable;
@@ -21,26 +24,23 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraft.world.level.portal.PortalInfo;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.util.ITeleporter;
 import reliquary.entities.EnderStaffProjectileEntity;
 import reliquary.init.ModBlocks;
-import reliquary.items.util.FilteredItemHandlerProvider;
-import reliquary.items.util.FilteredItemStack;
 import reliquary.items.util.FilteredItemStackHandler;
 import reliquary.items.util.IScrollableItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.TooltipBuilder;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Map;
+import java.util.function.Function;
 
 public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
-
 	private static final String DIMENSION_TAG = "dimensionID";
 	private static final String NODE_X_TAG = "nodeX";
 	private static final String NODE_Y_TAG = "nodeY";
@@ -51,23 +51,23 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	private int getEnderStaffPearlCost() {
-		return Settings.COMMON.items.enderStaff.enderPearlCastCost.get();
+		return Config.COMMON.items.enderStaff.enderPearlCastCost.get();
 	}
 
 	private int getEnderStaffNodeWarpCost() {
-		return Settings.COMMON.items.enderStaff.enderPearlNodeWarpCost.get();
+		return Config.COMMON.items.enderStaff.enderPearlNodeWarpCost.get();
 	}
 
 	private int getEnderPearlWorth() {
-		return Settings.COMMON.items.enderStaff.enderPearlWorth.get();
+		return Config.COMMON.items.enderStaff.enderPearlWorth.get();
 	}
 
 	private int getEnderPearlLimit() {
-		return Settings.COMMON.items.enderStaff.enderPearlLimit.get();
+		return Config.COMMON.items.enderStaff.enderPearlLimit.get();
 	}
 
 	private int getNodeWarpCastTime() {
-		return Settings.COMMON.items.enderStaff.nodeWarpCastTime.get();
+		return Config.COMMON.items.enderStaff.nodeWarpCastTime.get();
 	}
 
 	public Mode getMode(ItemStack stack) {
@@ -96,14 +96,6 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-		ArrayList<FilteredItemStack> filteredStacks = new ArrayList<>();
-		filteredStacks.add(new FilteredItemStack(Items.ENDER_PEARL, Settings.COMMON.items.enderStaff.enderPearlLimit.get(),
-				Settings.COMMON.items.enderStaff.enderPearlWorth.get(), false));
-		return new FilteredItemHandlerProvider(filteredStacks);
-	}
-
-	@Override
 	public void inventoryTick(ItemStack staff, Level world, Entity entity, int itemSlot, boolean isSelected) {
 		if (world.isClientSide || world.getGameTime() % 10 != 0) {
 			return;
@@ -123,29 +115,17 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	private void setPearlCount(ItemStack stack, int count) {
-		stack.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(itemHandler -> {
-			if (!(itemHandler instanceof FilteredItemStackHandler filteredHandler)) {
-				return;
-			}
-			filteredHandler.setTotalCount(0, count);
-		});
-	}
-
-	private int getPearlCount(ItemStack staff) {
-		return getPearlCount(staff, false);
-	}
-
-	public int getPearlCount(ItemStack staff, boolean isClient) {
-		if (isClient) {
-			return NBTHelper.getInt("count", staff);
+		if (!(stack.getCapability(Capabilities.ItemHandler.ITEM) instanceof FilteredItemStackHandler filteredHandler)) {
+			return;
 		}
+		filteredHandler.setTotalCount(0, count);
+	}
 
-		return staff.getCapability(ForgeCapabilities.ITEM_HANDLER, null).map(itemHandler -> {
-			if (!(itemHandler instanceof FilteredItemStackHandler filteredHandler)) {
-				return 0;
-			}
-			return filteredHandler.getTotalAmount(0);
-		}).orElse(0);
+	public int getPearlCount(ItemStack staff) {
+		if (!(staff.getCapability(Capabilities.ItemHandler.ITEM) instanceof FilteredItemStackHandler filteredHandler)) {
+			return 0;
+		}
+		return filteredHandler.getTotalAmount(0);
 	}
 
 	@Override
@@ -212,47 +192,68 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 		}
 	}
 
-	private void doWraithNodeWarpCheck(ItemStack stack, Level world, Player player) {
+	private void doWraithNodeWarpCheck(ItemStack stack, Level level, Player player) {
 		CompoundTag tag = stack.getTag();
 		if (tag == null || (getPearlCount(stack) < getEnderStaffNodeWarpCost() && !player.isCreative())) {
 			return;
 		}
 
-		if (!tag.getString(DIMENSION_TAG).equals(getDimension(world))) {
-			if (!world.isClientSide) {
-				player.sendSystemMessage(Component.literal(ChatFormatting.DARK_RED + "Out of range!"));
+		String wraithNodeDimension = tag.getString(DIMENSION_TAG);
+		BlockPos wraithNodePos = new BlockPos(tag.getInt(NODE_X_TAG), tag.getInt(NODE_Y_TAG), tag.getInt(NODE_Z_TAG));
+		if (!player.level().dimension().location().toString().equals(wraithNodeDimension) && player.level() instanceof ServerLevel serverLevel) {
+			ServerLevel destination = serverLevel.getServer().getLevel(ResourceKey.create(Registries.DIMENSION, new ResourceLocation(wraithNodeDimension)));
+			if (destination != null && canTeleport(destination, wraithNodePos)) {
+				teleportToDimension(player, destination, wraithNodePos);
+				if (!player.isCreative() && !player.level().isClientSide) {
+					setPearlCount(stack, getPearlCount(stack) - getEnderStaffNodeWarpCost());
+				}
 			}
-			return;
-		}
-
-		BlockPos wraithNodePos = new BlockPos(tag.getInt(NODE_X_TAG + getDimension(world)), tag.getInt(NODE_Y_TAG + getDimension(world)), tag.getInt(NODE_Z_TAG + getDimension(world)));
-		if (world.getBlockState(wraithNodePos).getBlock() == ModBlocks.WRAITH_NODE.get() && canTeleport(world, wraithNodePos)) {
-			teleportPlayer(world, wraithNodePos, player);
-			if (!player.isCreative() && !player.level().isClientSide) {
-				setPearlCount(stack, getPearlCount(stack) - getEnderStaffNodeWarpCost());
-			}
-			return;
-		}
-
-		if (tag.contains(DIMENSION_TAG)) {
-			tag.remove(DIMENSION_TAG);
-			tag.remove(NODE_X_TAG);
-			tag.remove(NODE_Y_TAG);
-			tag.remove(NODE_Z_TAG);
-			if (!world.isClientSide) {
-				player.sendSystemMessage(Component.literal(ChatFormatting.DARK_RED + "Node doesn't exist!"));
-			} else {
-				player.playSound(SoundEvents.ENDERMAN_DEATH, 1.0f, 1.0f);
+		} else {
+			if (canTeleport(level, wraithNodePos)) {
+				teleportPlayer(level, wraithNodePos, player);
+				if (!player.isCreative() && !player.level().isClientSide) {
+					setPearlCount(stack, getPearlCount(stack) - getEnderStaffNodeWarpCost());
+				}
 			}
 		}
 	}
 
-	private boolean canTeleport(Level world, BlockPos pos) {
+	private static void teleportToDimension(Player player, ServerLevel destination, BlockPos wraithNodePos) {
+		player.changeDimension(destination, new WraithNodeTeleporter() {
+			@Override
+			public PortalInfo getPortalInfo(Entity entity, ServerLevel destWorld, Function<ServerLevel, PortalInfo> defaultPortalInfo) {
+				return new PortalInfo(new Vec3(wraithNodePos.getX() + 0.5, wraithNodePos.getY() + 0.875, wraithNodePos.getZ() + 0.5), Vec3.ZERO, entity.getYRot(), entity.getXRot());
+			}
+
+			@Override
+			public Entity placeEntity(Entity entity, ServerLevel currentWorld, ServerLevel destWorld, float yaw, Function<Boolean, Entity> repositionEntity) {
+				return repositionEntity.apply(false);
+			}
+		});
+	}
+
+	private static boolean canTeleport(Level level, BlockPos pos) {
+		if (level.getBlockState(pos).getBlock() != ModBlocks.WRAITH_NODE.get()) {
+			return false;
+		}
+
 		BlockPos up = pos.above();
-		return world.isEmptyBlock(up) && world.isEmptyBlock(up.above());
+		return level.isEmptyBlock(up) && level.isEmptyBlock(up.above());
 	}
 
-	private void teleportPlayer(Level world, BlockPos pos, Player player) {
+	private abstract static class WraithNodeTeleporter implements ITeleporter {
+		@Override
+		public boolean isVanilla() {
+			return false;
+		}
+
+		@Override
+		public boolean playTeleportSound(ServerPlayer player, ServerLevel sourceWorld, ServerLevel destWorld) {
+			return false;
+		}
+	}
+
+	private static void teleportPlayer(Level world, BlockPos pos, Player player) {
 		player.teleportTo(pos.getX() + 0.5, pos.getY() + 0.875, pos.getZ() + 0.5);
 		player.playSound(SoundEvents.ENDERMAN_TELEPORT, 1.0f, 1.0f);
 		for (int particles = 0; particles < 2; particles++) {
@@ -261,17 +262,17 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack staff, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		tooltipBuilder.description(this, ".tooltip2");
-		tooltipBuilder.charge(this, ".tooltip.charge", getPearlCount(staff, true));
+		tooltipBuilder.charge(this, ".tooltip.charge", getPearlCount(staff));
 
-		if (staff.getTag() != null && staff.getTag().contains(NODE_X_TAG + getDimension(world)) && staff.getTag().contains(NODE_Y_TAG + getDimension(world)) && staff.getTag().contains(NODE_Z_TAG + getDimension(world))) {
-			if (staff.getTag() != null && !staff.getTag().getString(DIMENSION_TAG).equals(getDimension(world))) {
-				tooltipBuilder.warning(this, ".tooltip.position.out_of_range");
-			} else {
-				tooltipBuilder.data(this, ".tooltip.position", staff.getTag().getInt(NODE_X_TAG + getDimension(world)), staff.getTag().getInt(NODE_Y_TAG + getDimension(world)), staff.getTag().getInt(NODE_Z_TAG + getDimension(world)));
-			}
+		if (staff.getTag() != null && staff.getTag().contains(NODE_X_TAG) && staff.getTag().contains(NODE_Y_TAG) && staff.getTag().contains(NODE_Z_TAG)) {
+			tooltipBuilder.data(this, ".tooltip.position",
+					staff.getTag().getInt(NODE_X_TAG),
+					staff.getTag().getInt(NODE_Y_TAG),
+					staff.getTag().getInt(NODE_Z_TAG),
+					staff.getTag().getString(DIMENSION_TAG)
+			);
 		} else {
 			tooltipBuilder.description(this, ".tooltip.position.nowhere");
 		}
@@ -295,7 +296,7 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 		BlockPos pos = itemUseContext.getClickedPos();
 
 		// if right clicking on a wraith node, bind the eye to that wraith node.
-		if ((stack.getTag() == null || !(stack.getTag().contains(DIMENSION_TAG))) && world.getBlockState(pos).getBlock() == ModBlocks.WRAITH_NODE.get()) {
+		if (world.getBlockState(pos).getBlock() == ModBlocks.WRAITH_NODE.get()) {
 			setWraithNode(stack, pos, getDimension(world));
 
 			Player player = itemUseContext.getPlayer();
@@ -312,26 +313,14 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	private String getDimension(@Nullable Level world) {
-		return world != null ? world.dimension().registry().toString() : Level.OVERWORLD.location().toString();
+		return world != null ? world.dimension().location().toString() : Level.OVERWORLD.location().toString();
 	}
 
 	private void setWraithNode(ItemStack eye, BlockPos pos, String dimension) {
-		NBTHelper.putInt(NODE_X_TAG + dimension, eye, pos.getX());
-		NBTHelper.putInt(NODE_Y_TAG + dimension, eye, pos.getY());
-		NBTHelper.putInt(NODE_Z_TAG + dimension, eye, pos.getZ());
+		NBTHelper.putInt(NODE_X_TAG, eye, pos.getX());
+		NBTHelper.putInt(NODE_Y_TAG, eye, pos.getY());
+		NBTHelper.putInt(NODE_Z_TAG, eye, pos.getZ());
 		NBTHelper.putString(DIMENSION_TAG, eye, dimension);
-	}
-
-	@Nullable
-	@Override
-	public CompoundTag getShareTag(ItemStack staff) {
-		CompoundTag nbt = super.getShareTag(staff);
-		if (nbt == null) {
-			nbt = new CompoundTag();
-		}
-		nbt.putInt("count", getPearlCount(staff));
-
-		return nbt;
 	}
 
 	public enum Mode implements StringRepresentable {

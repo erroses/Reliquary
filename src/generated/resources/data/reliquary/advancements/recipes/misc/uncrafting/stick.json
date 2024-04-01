@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_witch_hat",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_witch_hat"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/stick"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -6,16 +6,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import reliquary.common.gui.MobCharmBeltMenu;
 import reliquary.init.ModItems;
 import reliquary.items.MobCharmRegistry;
 import reliquary.reference.Reference;
-import reliquary.util.LogHelper;
-
-import java.lang.reflect.Field;
 
 @SuppressWarnings("squid:MaximumInheritanceDepth")
 public class MobCharmBeltGui extends GuiBase<MobCharmBeltMenu> {
@@ -77,38 +72,14 @@ public class MobCharmBeltGui extends GuiBase<MobCharmBeltMenu> {
 
 			RenderSystem.disableBlend();
 
-			setSlotXPos(menu.slots.get(i - 1), x - centerX + 88);
-			setSlotYPos(menu.slots.get(i - 1), y - centerY + 40);
+			menu.slots.get(i - 1).x = x - centerX + 88;
+			menu.slots.get(i - 1).y = y - centerY + 40;
 		}
-		setSlotXPos(menu.slots.get(slots), 80);
-		setSlotYPos(menu.slots.get(slots), -12);
+		menu.slots.get(slots).x = 80;
+		menu.slots.get(slots).y = -12;
 
 		for (int i = slots + 1; i < MobCharmRegistry.getRegisteredNames().size() + 1; i++) {
-			setSlotXPos(menu.slots.get(i), -999);
-		}
-	}
-
-	private static final Field SLOT_X_POS = ObfuscationReflectionHelper.findField(Slot.class, "f_40220_");
-
-	@SuppressWarnings("java:S3011") //the use of reflection to bypass field invisiblity is intentional and necessary here
-	private static void setSlotXPos(Slot slot, int xPos) {
-		try {
-			SLOT_X_POS.set(slot, xPos);
-		}
-		catch (IllegalAccessException e) {
-			LogHelper.error("Error setting xPos of Slot: ", e);
-		}
-	}
-
-	private static final Field SLOT_Y_POS = ObfuscationReflectionHelper.findField(Slot.class, "f_40221_");
-
-	@SuppressWarnings("java:S3011") //the use of reflection to bypass field invisiblity is intentional and necessary here
-	private static void setSlotYPos(Slot slot, int yPos) {
-		try {
-			SLOT_Y_POS.set(slot, yPos);
-		}
-		catch (IllegalAccessException e) {
-			LogHelper.error("Error setting yPos of Slot: ", e);
+			menu.slots.get(i).x = -999;
 		}
 	}
 

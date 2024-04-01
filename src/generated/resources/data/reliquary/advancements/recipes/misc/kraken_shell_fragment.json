@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_squid_beak",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_squid_beak"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:kraken_shell_fragment"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

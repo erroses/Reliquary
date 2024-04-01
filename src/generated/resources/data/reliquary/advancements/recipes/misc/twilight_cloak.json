@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_crimson_cloth",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_crimson_cloth"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:twilight_cloak"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

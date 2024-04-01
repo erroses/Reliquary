@@ -1,12 +1,11 @@
 package reliquary.items;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import reliquary.util.NBTHelper;
 
 import java.util.function.Consumer;
@@ -39,10 +38,9 @@ public class MobCharmFragmentItem extends ItemBase {
 
 	@Override
 	public MutableComponent getName(ItemStack stack) {
-		EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(getEntityEggRegistryName(stack));
-		if (entityType == null) {
-			return super.getName(stack);
-		}
-		return Component.translatable(getDescriptionId(), entityType.getDescription().getString()).withStyle(ChatFormatting.GREEN);
+		ResourceLocation entityEggRegistryName = getEntityEggRegistryName(stack);
+		return BuiltInRegistries.ENTITY_TYPE.getOptional(entityEggRegistryName)
+				.map(entityType -> Component.translatable(getDescriptionId(), entityType.getDescription().getString()).withStyle(ChatFormatting.GREEN))
+				.orElseGet(() -> super.getName(stack));
 	}
 }

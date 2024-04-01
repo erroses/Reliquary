@@ -1,41 +1,40 @@
 package reliquary.crafting;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import reliquary.init.ModItems;
 import reliquary.items.util.IPotionItem;
 import reliquary.util.potions.XRPotionHelper;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class PotionEffectsRecipe implements CraftingRecipe {
-	private final ShapedRecipe compose;
+	private final ShapedRecipePattern pattern;
+	private final ItemStack result;
+	private final String group;
 	private final float potionDurationFactor;
 
-	private PotionEffectsRecipe(ShapedRecipe compose, float potionDurationFactor) {
-		this.compose = compose;
+	public PotionEffectsRecipe(String group, ShapedRecipePattern pattern, ItemStack result, float potionDurationFactor) {
+		this.group = group;
+		this.pattern = pattern;
+		this.result = result;
 		this.potionDurationFactor = potionDurationFactor;
 	}
 
 	@Override
 	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
-		ItemStack newOutput = compose.getResultItem(registryAccess).copy();
+		ItemStack newOutput = result.copy();
 
 		findMatchAndUpdateEffects(inv).ifPresent(targetEffects -> XRPotionHelper.addPotionEffectsToStack(newOutput, targetEffects));
 
@@ -44,13 +43,13 @@ public class PotionEffectsRecipe implements CraftingRecipe {
 
 	@Override
 	public boolean canCraftInDimensions(int width, int height) {
-		return width >= compose.getRecipeWidth() && height >= compose.getRecipeHeight();
+		return width >= pattern.width() && height >= pattern.height();
 	}
 
 	private Optional<List<MobEffectInstance>> findMatchAndUpdateEffects(CraftingContainer inv) {
 		List<MobEffectInstance> targetEffects;
-		for (int startX = 0; startX <= inv.getWidth() - compose.getRecipeWidth(); startX++) {
-			for (int startY = 0; startY <= inv.getHeight() - compose.getRecipeHeight(); ++startY) {
+		for (int startX = 0; startX <= inv.getWidth() - pattern.width(); startX++) {
+			for (int startY = 0; startY <= inv.getHeight() - pattern.height(); ++startY) {
 				targetEffects = new ArrayList<>();
 				if (checkMatchAndUpdateEffects(inv, targetEffects, startX, startY, false)) {
 					return Optional.of(targetEffects);
@@ -65,8 +64,8 @@ public class PotionEffectsRecipe implements CraftingRecipe {
 	}
 
 	private boolean checkMatchAndUpdateEffects(CraftingContainer inv, List<MobEffectInstance> targetEffects, int startX, int startY, boolean mirror) {
-		for (int x = 0; x < compose.getRecipeWidth(); x++) {
-			for (int y = 0; y < compose.getRecipeHeight(); y++) {
+		for (int x = 0; x < pattern.width(); x++) {
+			for (int y = 0; y < pattern.height(); y++) {
 				int subX = x - startX;
 				int subY = y - startY;
 
@@ -84,8 +83,8 @@ public class PotionEffectsRecipe implements CraftingRecipe {
 
 	@Override
 	public boolean matches(CraftingContainer inv, Level world) {
-		for (int x = 0; x <= inv.getWidth() - compose.getRecipeWidth(); x++) {
-			for (int y = 0; y <= inv.getHeight() - compose.getRecipeHeight(); ++y) {
+		for (int x = 0; x <= inv.getWidth() - pattern.width(); x++) {
+			for (int y = 0; y <= inv.getHeight() - pattern.height(); ++y) {
 				if (checkMatch(inv, x, y, false)) {
 					return true;
 				}
@@ -122,25 +121,20 @@ public class PotionEffectsRecipe implements CraftingRecipe {
 
 	@Override
 	public ItemStack getResultItem(RegistryAccess registryAccess) {
-		return compose.getResultItem(registryAccess);
+		return result;
 	}
 
 	@Override
 	public NonNullList<Ingredient> getIngredients() {
-		return compose.getIngredients();
-	}
-
-	@Override
-	public ResourceLocation getId() {
-		return compose.getId();
+		return pattern.ingredients();
 	}
 
 	private Ingredient getTarget(int subX, int subY, boolean mirror) {
-		if (subX >= 0 && subY >= 0 && subX < compose.getRecipeWidth() && subY < compose.getRecipeHeight()) {
+		if (subX >= 0 && subY >= 0 && subX < pattern.width() && subY < pattern.height()) {
 			if (mirror) {
-				return compose.getIngredients().get(compose.getRecipeWidth() - subX - 1 + subY * compose.getRecipeWidth());
+				return pattern.ingredients().get(pattern.width() - subX - 1 + subY * pattern.width());
 			} else {
-				return compose.getIngredients().get(subX + subY * compose.getRecipeWidth());
+				return pattern.ingredients().get(subX + subY * pattern.width());
 			}
 		}
 		return Ingredient.EMPTY;
@@ -179,21 +173,30 @@ public class PotionEffectsRecipe implements CraftingRecipe {
 	}
 
 	public static class Serializer implements RecipeSerializer<PotionEffectsRecipe> {
+		private final Codec<PotionEffectsRecipe> codec = RecordCodecBuilder.create(
+				instance -> instance.group(
+								ExtraCodecs.strictOptionalField(Codec.STRING, "group", "").forGetter(recipe -> recipe.group),
+								ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.pattern),
+								ItemStack.ITEM_WITH_COUNT_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
+								Codec.FLOAT.fieldOf("duration_factor").forGetter(recipe -> recipe.potionDurationFactor)
+						)
+						.apply(instance, PotionEffectsRecipe::new));
+
 		@Override
-		public PotionEffectsRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			return new PotionEffectsRecipe(RecipeSerializer.SHAPED_RECIPE.fromJson(recipeId, json), GsonHelper.getAsFloat(json, "duration_factor", 1.0f));
+		public Codec<PotionEffectsRecipe> codec() {
+			return codec;
 		}
 
-		@Nullable
 		@Override
-		public PotionEffectsRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-			//noinspection ConstantConditions - shaped recipe serializer always returns an instance of recipe despite RecipeSerializer's null allowing contract
-			return new PotionEffectsRecipe(RecipeSerializer.SHAPED_RECIPE.fromNetwork(recipeId, buffer), buffer.readFloat());
+		public PotionEffectsRecipe fromNetwork(FriendlyByteBuf buffer) {
+			return new PotionEffectsRecipe(buffer.readUtf(), ShapedRecipePattern.fromNetwork(buffer), buffer.readItem(), buffer.readFloat());
 		}
 
 		@Override
 		public void toNetwork(FriendlyByteBuf buffer, PotionEffectsRecipe recipe) {
-			RecipeSerializer.SHAPED_RECIPE.toNetwork(buffer, recipe.compose);
+			buffer.writeUtf(recipe.group);
+			recipe.pattern.toNetwork(buffer);
+			buffer.writeItem(recipe.result);
 			buffer.writeFloat(recipe.potionDurationFactor);
 		}
 	}

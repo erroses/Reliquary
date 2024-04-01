@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_rib_bone",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_rib_bone"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_fragments/skeleton"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

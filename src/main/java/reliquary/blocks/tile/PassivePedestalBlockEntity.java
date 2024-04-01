@@ -1,7 +1,6 @@
 package reliquary.blocks.tile;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -10,18 +9,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import reliquary.init.ModBlocks;
 import reliquary.util.InventoryHelper;
 
-import javax.annotation.Nullable;
-
 public class PassivePedestalBlockEntity extends BlockEntityBase implements Container {
 	protected ItemStack item;
+
 	private final IItemHandler inventoryWrapper = new InvWrapper(this);
 
 	public ItemStack getItem() {
@@ -35,6 +30,10 @@ public class PassivePedestalBlockEntity extends BlockEntityBase implements Conta
 	PassivePedestalBlockEntity(BlockEntityType<?> tileEntityType, BlockPos pos, BlockState state) {
 		super(tileEntityType, pos, state);
 		item = ItemStack.EMPTY;
+	}
+
+	public IItemHandler getItemHandler() {
+		return inventoryWrapper;
 	}
 
 	public void dropPedestalInventory(Level level) {
@@ -159,14 +158,5 @@ public class PassivePedestalBlockEntity extends BlockEntityBase implements Conta
 	@Override
 	public boolean isEmpty() {
 		return item.isEmpty();
-	}
-
-
-	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.ITEM_HANDLER) {
-			return ForgeCapabilities.ITEM_HANDLER.orEmpty(cap, LazyOptional.of(() -> inventoryWrapper));
-		}
-		return super.getCapability(cap, side);
 	}
 }

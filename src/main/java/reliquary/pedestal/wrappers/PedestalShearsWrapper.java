@@ -13,11 +13,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BeehiveBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.IForgeShearable;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.IShearable;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import reliquary.api.IPedestal;
 import reliquary.api.IPedestalActionItemWrapper;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 import java.util.ArrayDeque;
 import java.util.List;
@@ -31,14 +31,14 @@ public class PedestalShearsWrapper implements IPedestalActionItemWrapper {
 	@Override
 	public void update(ItemStack stack, Level level, IPedestal pedestal) {
 		BlockPos pos = pedestal.getBlockPosition();
-		int shearsRange = Settings.COMMON.blocks.pedestal.shearsWrapperRange.get();
+		int shearsRange = Config.COMMON.blocks.pedestal.shearsWrapperRange.get();
 
 		if (shearAnimals(stack, level, pedestal, pos, shearsRange)) {
 			return;
 		}
 
 		if (!isShearingBlock) {
-			pedestal.setActionCoolDown(Settings.COMMON.blocks.pedestal.shearsWrapperCooldown.get());
+			pedestal.setActionCoolDown(Config.COMMON.blocks.pedestal.shearsWrapperCooldown.get());
 		}
 
 		if (stack.getCount() == 0) {
@@ -91,7 +91,7 @@ public class PedestalShearsWrapper implements IPedestalActionItemWrapper {
 				shearBeehive(world, blockPosBeingSheared, blockState, stack);
 			} else {
 				if (world.removeBlock(blockPosBeingSheared, false)) {
-					Block.dropResources(blockState, world, pos, null, fakePlayer, new ItemStack(Items.SHEARS));
+					Block.dropResources(blockState, world, blockPosBeingSheared, null, fakePlayer, new ItemStack(Items.SHEARS));
 					world.levelEvent(2001, blockPosBeingSheared, Block.getId(blockState));
 					stack.hurt(1, world.getRandom(), null);
 				}
@@ -104,7 +104,7 @@ public class PedestalShearsWrapper implements IPedestalActionItemWrapper {
 
 	private boolean isShearableBlock(ItemStack stack, Level world, BlockState blockState) {
 		Block block = blockState.getBlock();
-		return (block instanceof IForgeShearable shearable && shearable.isShearable(stack, world, blockPosBeingSheared))
+		return (block instanceof IShearable shearable && shearable.isShearable(stack, world, blockPosBeingSheared))
 				|| (block instanceof BeehiveBlock && blockState.getValue(BeehiveBlock.HONEY_LEVEL) >= 5);
 	}
 
@@ -134,10 +134,10 @@ public class PedestalShearsWrapper implements IPedestalActionItemWrapper {
 
 	private boolean shearAnimals(ItemStack stack, Level world, FakePlayer fakePlayer, BlockPos pos, int shearsRange) {
 		List<Animal> entities = world.getEntitiesOfClass(Animal.class,
-				new AABB(pos.offset(-shearsRange, -shearsRange, -shearsRange), pos.offset(shearsRange, shearsRange, shearsRange)));
+				AABB.encapsulatingFullBlocks(pos.offset(-shearsRange, -shearsRange, -shearsRange), pos.offset(shearsRange, shearsRange, shearsRange)));
 
 		for (Animal animal : entities) {
-			if (animal instanceof IForgeShearable shearable && shearable.isShearable(stack, world, animal.blockPosition())) {
+			if (animal instanceof IShearable shearable && shearable.isShearable(stack, world, animal.blockPosition())) {
 				fakePlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
 				fakePlayer.interactOn(animal, InteractionHand.MAIN_HAND);
 				return true;

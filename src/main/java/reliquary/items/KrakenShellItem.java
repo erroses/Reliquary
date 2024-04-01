@@ -6,14 +6,12 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.neoforged.neoforge.event.entity.living.LivingAttackEvent;
 import reliquary.handler.CommonEventHandler;
 import reliquary.handler.HandlerPriority;
 import reliquary.handler.IPlayerHurtHandler;
 import reliquary.init.ModItems;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.InventoryHelper;
 
 public class KrakenShellItem extends ItemBase {
@@ -30,7 +28,7 @@ public class KrakenShellItem extends ItemBase {
 
 			@Override
 			public boolean apply(Player player, LivingAttackEvent event) {
-				float hungerDamage = event.getAmount() * ((float) Settings.COMMON.items.krakenShell.hungerCostPercent.get() / 100F);
+				float hungerDamage = event.getAmount() * ((float) Config.COMMON.items.krakenShell.hungerCostPercent.get() / 100F);
 				player.causeFoodExhaustion(hungerDamage);
 				return true;
 			}
@@ -43,7 +41,6 @@ public class KrakenShellItem extends ItemBase {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public boolean isFoil(ItemStack stack) {
 		return true;
 	}

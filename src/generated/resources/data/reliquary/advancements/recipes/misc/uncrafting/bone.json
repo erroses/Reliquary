@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_rib_bone",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_rib_bone"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/bone"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_mob_charm_fragment",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_mob_charm_fragment"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_belt"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

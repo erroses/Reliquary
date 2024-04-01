@@ -1,9 +1,7 @@
 package reliquary.data;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import net.minecraft.util.GsonHelper;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -20,12 +18,20 @@ import reliquary.init.ModItems;
 import java.util.Set;
 
 public class RandomChanceLootingSeveringCondition implements LootItemCondition {
-	final float percent;
+	public static final Codec<RandomChanceLootingSeveringCondition> CODEC = RecordCodecBuilder.create(
+			p_298496_ -> p_298496_.group(
+							Codec.FLOAT.fieldOf("chance").forGetter(condition -> condition.chance),
+							Codec.FLOAT.fieldOf("looting_multiplier").forGetter(condition -> condition.lootingMultiplier),
+							Codec.FLOAT.fieldOf("severing_multiplier").forGetter(condition -> condition.severingMultiplier)
+					)
+					.apply(p_298496_, RandomChanceLootingSeveringCondition::new)
+	);
+	final float chance;
 	final float lootingMultiplier;
 	private final float severingMultiplier;
 
-	RandomChanceLootingSeveringCondition(float percent, float lootingMultiplier, float severingMultiplier) {
-		this.percent = percent;
+	RandomChanceLootingSeveringCondition(float chance, float lootingMultiplier, float severingMultiplier) {
+		this.chance = chance;
 		this.lootingMultiplier = lootingMultiplier;
 		this.severingMultiplier = severingMultiplier;
 	}
@@ -41,7 +47,7 @@ public class RandomChanceLootingSeveringCondition implements LootItemCondition {
 
 	public boolean test(LootContext lootContext) {
 		int i = lootContext.getLootingModifier();
-		return lootContext.getRandom().nextFloat() < percent + i * lootingMultiplier + getSeveringModifier(lootContext) * severingMultiplier;
+		return lootContext.getRandom().nextFloat() < chance + i * lootingMultiplier + getSeveringModifier(lootContext) * severingMultiplier;
 	}
 
 	private int getSeveringModifier(LootContext lootContext) {
@@ -69,18 +75,5 @@ public class RandomChanceLootingSeveringCondition implements LootItemCondition {
 
 	public static Builder randomChanceLootingSevering(float percent, float lootingMultiplier, float severingMultiplier) {
 		return () -> new RandomChanceLootingSeveringCondition(percent, lootingMultiplier, severingMultiplier);
-	}
-
-	public static class Serializer implements net.minecraft.world.level.storage.loot.Serializer<RandomChanceLootingSeveringCondition> {
-		public void serialize(JsonObject jsonObject, RandomChanceLootingSeveringCondition condition, JsonSerializationContext context) {
-			jsonObject.addProperty("chance", condition.percent);
-			jsonObject.addProperty("looting_multiplier", condition.lootingMultiplier);
-			jsonObject.addProperty("severing_multiplier", condition.severingMultiplier);
-		}
-
-		public RandomChanceLootingSeveringCondition deserialize(JsonObject jsonObject, JsonDeserializationContext context) {
-			return new RandomChanceLootingSeveringCondition(GsonHelper.getAsFloat(jsonObject, "chance"), GsonHelper.getAsFloat(jsonObject, "looting_multiplier")
-					, GsonHelper.getAsFloat(jsonObject, "severing_multiplier"));
-		}
 	}
 }

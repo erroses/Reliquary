@@ -1,19 +1,21 @@
 package reliquary.init;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import reliquary.reference.Reference;
 
-public class ModEnchantments {
-	private ModEnchantments() {}
+import java.util.function.Supplier;
 
-	private static final DeferredRegister<Enchantment> ENCHANTMENTS = DeferredRegister.create(ForgeRegistries.ENCHANTMENTS, Reference.MOD_ID);
-	public static final RegistryObject<Enchantment> SEVERING = ENCHANTMENTS.register("severing", SeveringEnchantment::new);
+public class ModEnchantments {
+	private ModEnchantments() {
+	}
+
+	private static final DeferredRegister<Enchantment> ENCHANTMENTS = DeferredRegister.create(BuiltInRegistries.ENCHANTMENT, Reference.MOD_ID);
+	public static final Supplier<Enchantment> SEVERING = ENCHANTMENTS.register("severing", SeveringEnchantment::new);
 
 	public static void register(IEventBus modBus) {
 		ENCHANTMENTS.register(modBus);
@@ -21,7 +23,7 @@ public class ModEnchantments {
 
 	public static class SeveringEnchantment extends Enchantment {
 		protected SeveringEnchantment() {
-			super(Rarity.RARE, EnchantmentCategory.WEAPON, new EquipmentSlot[] {EquipmentSlot.MAINHAND});
+			super(Rarity.RARE, EnchantmentCategory.WEAPON, new EquipmentSlot[]{EquipmentSlot.MAINHAND});
 		}
 
 		@Override

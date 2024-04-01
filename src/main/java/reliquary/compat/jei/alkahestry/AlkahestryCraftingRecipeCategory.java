@@ -19,7 +19,6 @@ import reliquary.crafting.AlkahestryCraftingRecipe;
 import reliquary.init.ModItems;
 import reliquary.items.AlkahestryTomeItem;
 import reliquary.reference.Reference;
-import reliquary.reference.Settings;
 
 public class AlkahestryCraftingRecipeCategory extends AlkahestryRecipeCategory<AlkahestryCraftingRecipe> {
 	public static final RecipeType<AlkahestryCraftingRecipe> TYPE = RecipeType.create(Reference.MOD_ID, "alkahestry_crafting", AlkahestryCraftingRecipe.class);
@@ -54,7 +53,7 @@ public class AlkahestryCraftingRecipeCategory extends AlkahestryRecipeCategory<A
 		ItemStack tome = ingredientsInputs.get(1).getItems()[0];
 		ItemStack output = recipe.getResult();
 		ItemStack tomeOutput = AlkahestryTomeItem.setCharge(new ItemStack(ModItems.ALKAHESTRY_TOME.get()),
-				Settings.COMMON.items.alkahestryTome.chargeLimit.get() - recipe.getChargeNeeded());
+				AlkahestryTomeItem.getChargeLimit() - recipe.getChargeNeeded());
 
 		builder.addSlot(RecipeIngredientRole.INPUT, 1, 1).addItemStack(input);
 		builder.addSlot(RecipeIngredientRole.INPUT, 19, 1).addItemStack(tome);

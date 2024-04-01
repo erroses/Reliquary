@@ -3,8 +3,8 @@ package reliquary.client.particle;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.Locale;
 
@@ -28,7 +28,7 @@ public abstract class ColorParticleData implements ParticleOptions {
 
 	@Override
 	public String writeToString() {
-		return String.format(Locale.ROOT, "%s %.2f %.2f %.2f", ForgeRegistries.PARTICLE_TYPES.getKey(getType()), red, green, blue);
+		return String.format(Locale.ROOT, "%s %.2f %.2f %.2f", BuiltInRegistries.PARTICLE_TYPE.getKey(getType()), red, green, blue);
 	}
 
 	public interface IColorParticleDataInitializer<T extends ColorParticleData> {
@@ -36,7 +36,8 @@ public abstract class ColorParticleData implements ParticleOptions {
 	}
 
 	public static class DeserializationHelper {
-		private DeserializationHelper() {}
+		private DeserializationHelper() {
+		}
 
 		public static <T extends ColorParticleData> T deserialize(IColorParticleDataInitializer<T> initializer, StringReader stringReader)
 				throws CommandSyntaxException {

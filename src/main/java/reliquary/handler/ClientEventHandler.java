@@ -25,30 +25,20 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
-import net.minecraftforge.client.settings.KeyConflictContext;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.gui.overlay.VanillaGuiOverlay;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.PacketDistributor;
 import reliquary.client.gui.components.Box;
 import reliquary.client.gui.components.Component;
 import reliquary.client.gui.components.ItemStackPane;
 import reliquary.client.gui.components.TextPane;
-import reliquary.client.gui.hud.ChargePane;
-import reliquary.client.gui.hud.ChargeableItemInfoPane;
-import reliquary.client.gui.hud.CharmPane;
-import reliquary.client.gui.hud.DynamicChargePane;
-import reliquary.client.gui.hud.HUDPosition;
-import reliquary.client.gui.hud.HUDRenderrer;
-import reliquary.client.gui.hud.HandgunPane;
-import reliquary.client.gui.hud.HeroMedallionPane;
+import reliquary.client.gui.hud.*;
 import reliquary.client.init.ItemModels;
 import reliquary.client.init.ModBlockColors;
 import reliquary.client.init.ModItemColors;
@@ -56,30 +46,16 @@ import reliquary.client.init.ModParticles;
 import reliquary.client.model.MobCharmBeltModel;
 import reliquary.client.model.WitchHatModel;
 import reliquary.client.registry.PedestalClientRegistry;
-import reliquary.client.render.ApothecaryMortarRenderer;
-import reliquary.client.render.LyssaHookRenderer;
-import reliquary.client.render.PassivePedestalRenderer;
-import reliquary.client.render.PedestalFishHookRenderer;
-import reliquary.client.render.PedestalRenderer;
-import reliquary.client.render.ShotRenderer;
-import reliquary.client.render.XRTippedArrowRenderer;
+import reliquary.client.render.*;
 import reliquary.init.ModBlocks;
 import reliquary.init.ModEntities;
 import reliquary.init.ModItems;
-import reliquary.items.EnderStaffItem;
-import reliquary.items.FortuneCoinToggler;
-import reliquary.items.HarvestRodItem;
-import reliquary.items.InfernalTearItem;
-import reliquary.items.PyromancerStaffItem;
-import reliquary.items.RendingGaleItem;
-import reliquary.items.RodOfLyssaItem;
-import reliquary.items.VoidTearItem;
+import reliquary.items.*;
 import reliquary.items.util.IScrollableItem;
-import reliquary.network.PacketHandler;
 import reliquary.network.ScrolledItemPacket;
 import reliquary.reference.Colors;
+import reliquary.reference.Config;
 import reliquary.reference.Reference;
-import reliquary.reference.Settings;
 import reliquary.util.InventoryHelper;
 import reliquary.util.NBTHelper;
 import reliquary.util.potions.XRPotionHelper;
@@ -88,7 +64,8 @@ import java.util.List;
 import java.util.Map;
 
 public class ClientEventHandler {
-	private ClientEventHandler() {}
+	private ClientEventHandler() {
+	}
 
 	private static final int KEY_UNKNOWN = -1;
 	public static final KeyMapping FORTUNE_COIN_TOGGLE_KEYBIND = new KeyMapping("keybind.reliquary.fortune_coin", KeyConflictContext.UNIVERSAL, InputConstants.Type.KEYSYM.getOrCreate(KEY_UNKNOWN), "keybind.reliquary.category");
@@ -97,7 +74,11 @@ public class ClientEventHandler {
 	public static final ModelLayerLocation MOB_CHARM_BELT_LAYER = new ModelLayerLocation(new ResourceLocation(Reference.MOD_ID, "mob_charm_belt"), "main");
 
 	public static void registerHandlers() {
-		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+		IEventBus modBus = ModLoadingContext.get().getActiveContainer().getEventBus();
+		if (modBus == null) {
+			return;
+		}
+
 		modBus.addListener(ClientEventHandler::clientSetup);
 		modBus.addListener(ClientEventHandler::registerKeyMappings);
 		modBus.addListener(ClientEventHandler::loadComplete);
@@ -109,7 +90,7 @@ public class ClientEventHandler {
 		modBus.addListener(ModItemColors::registerItemColors);
 		modBus.addListener(ClientEventHandler::registerOverlay);
 
-		IEventBus eventBus = MinecraftForge.EVENT_BUS;
+		IEventBus eventBus = NeoForge.EVENT_BUS;
 		eventBus.addListener(ClientEventHandler::onRenderLiving);
 		eventBus.addListener(ClientEventHandler::onMouseScrolled);
 	}
@@ -182,7 +163,7 @@ public class ClientEventHandler {
 	private static final List<Tuple<Component, HUDPosition>> hudComponents = Lists.newArrayList();
 
 	private static void registerOverlay(RegisterGuiOverlaysEvent event) {
-		event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), "reliquary_hud", (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> {
+		event.registerAbove(VanillaGuiOverlay.HOTBAR.id(), new ResourceLocation(Reference.MOD_ID, "reliquary_hud"), (gui, guiGraphics, partialTick, screenWidth, screenHeight) -> {
 			if (hudComponents.isEmpty()) {
 				initHUDComponents();
 			}
@@ -200,9 +181,9 @@ public class ClientEventHandler {
 			return;
 		}
 		ItemStack stack = player.getMainHandItem();
-		double scrollDelta = evt.getScrollDelta();
+		double scrollDelta = evt.getScrollDeltaY();
 		if (stack.getItem() instanceof IScrollableItem scrollableItem && scrollableItem.onMouseScrolled(stack, player, scrollDelta) == InteractionResult.PASS) {
-			PacketHandler.sendToServer(new ScrolledItemPacket(scrollDelta));
+			PacketDistributor.SERVER.noArg().send(new ScrolledItemPacket(scrollDelta));
 			evt.setCanceled(true);
 		}
 	}
@@ -214,54 +195,54 @@ public class ClientEventHandler {
 	}
 
 	private static void initHUDComponents() {
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.ALKAHESTRY_TOME.get(), Settings.CLIENT.hudPositions.alkahestryTome.get(), new ItemStack(Items.REDSTONE), is -> NBTHelper.getInt("charge", is)),
-				Settings.CLIENT.hudPositions.alkahestryTome.get()));
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.ALKAHESTRY_TOME.get(), Config.CLIENT.hudPositions.alkahestryTome.get(), new ItemStack(Items.REDSTONE), is -> NBTHelper.getInt("charge", is)),
+				Config.CLIENT.hudPositions.alkahestryTome.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.DESTRUCTION_CATALYST.get(), Settings.CLIENT.hudPositions.destructionCatalyst.get(), new ItemStack(Items.GUNPOWDER), is -> NBTHelper.getInt("gunpowder", is)),
-				Settings.CLIENT.hudPositions.destructionCatalyst.get()));
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.DESTRUCTION_CATALYST.get(), Config.CLIENT.hudPositions.destructionCatalyst.get(), new ItemStack(Items.GUNPOWDER), is -> NBTHelper.getInt("gunpowder", is)),
+				Config.CLIENT.hudPositions.destructionCatalyst.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.MIDAS_TOUCHSTONE.get(), Settings.CLIENT.hudPositions.midasTouchstone.get(), new ItemStack(Items.GLOWSTONE_DUST), is -> NBTHelper.getInt("glowstone", is)),
-				Settings.CLIENT.hudPositions.midasTouchstone.get()));
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.MIDAS_TOUCHSTONE.get(), Config.CLIENT.hudPositions.midasTouchstone.get(), new ItemStack(Items.GLOWSTONE_DUST), is -> NBTHelper.getInt("glowstone", is)),
+				Config.CLIENT.hudPositions.midasTouchstone.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.INFERNAL_CHALICE.get(), Settings.CLIENT.hudPositions.infernalChalice.get(), new ItemStack(Items.LAVA_BUCKET), is -> NBTHelper.getInt("fluidStacks", is) / 1000, Colors.get(Colors.RED)),
-				Settings.CLIENT.hudPositions.infernalChalice.get()));
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.INFERNAL_CHALICE.get(), Config.CLIENT.hudPositions.infernalChalice.get(), new ItemStack(Items.LAVA_BUCKET), is -> NBTHelper.getInt("fluidStacks", is) / 1000, Colors.get(Colors.RED)),
+				Config.CLIENT.hudPositions.infernalChalice.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.ICE_MAGUS_ROD.get(), Settings.CLIENT.hudPositions.iceMagusRod.get(), new ItemStack(Items.SNOWBALL), is -> NBTHelper.getInt("snowballs", is)),
-				Settings.CLIENT.hudPositions.iceMagusRod.get()));
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.ICE_MAGUS_ROD.get(), Config.CLIENT.hudPositions.iceMagusRod.get(), new ItemStack(Items.SNOWBALL), is -> NBTHelper.getInt("snowballs", is)),
+				Config.CLIENT.hudPositions.iceMagusRod.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.GLACIAL_STAFF.get(), Settings.CLIENT.hudPositions.glacialStaff.get(), new ItemStack(Items.SNOWBALL), is -> NBTHelper.getInt("snowballs", is)),
-				Settings.CLIENT.hudPositions.glacialStaff.get()));
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.GLACIAL_STAFF.get(), Config.CLIENT.hudPositions.glacialStaff.get(), new ItemStack(Items.SNOWBALL), is -> NBTHelper.getInt("snowballs", is)),
+				Config.CLIENT.hudPositions.glacialStaff.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.ENDER_STAFF.get(), Settings.CLIENT.hudPositions.enderStaff.get(), is -> ModItems.ENDER_STAFF.get().getMode(is).getSerializedName(),
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.ENDER_STAFF.get(), Config.CLIENT.hudPositions.enderStaff.get(), is -> ModItems.ENDER_STAFF.get().getMode(is).getSerializedName(),
 				Map.of(
-						EnderStaffItem.Mode.CAST.getSerializedName(), new ChargePane(ModItems.ENDER_STAFF.get(), new ItemStack(Items.ENDER_PEARL), is -> ModItems.ENDER_STAFF.get().getPearlCount(is, true)),
-						EnderStaffItem.Mode.NODE_WARP.getSerializedName(), new ChargePane(ModItems.ENDER_STAFF.get(), new ItemStack(ModBlocks.WRAITH_NODE.get()), is -> ModItems.ENDER_STAFF.get().getPearlCount(is, true)),
-						EnderStaffItem.Mode.LONG_CAST.getSerializedName(), new ChargePane(ModItems.ENDER_STAFF.get(), new ItemStack(Items.ENDER_EYE), is -> ModItems.ENDER_STAFF.get().getPearlCount(is, true))
-				)), Settings.CLIENT.hudPositions.enderStaff.get()));
+						EnderStaffItem.Mode.CAST.getSerializedName(), new ChargePane(ModItems.ENDER_STAFF.get(), new ItemStack(Items.ENDER_PEARL), is -> ModItems.ENDER_STAFF.get().getPearlCount(is)),
+						EnderStaffItem.Mode.NODE_WARP.getSerializedName(), new ChargePane(ModItems.ENDER_STAFF.get(), new ItemStack(ModBlocks.WRAITH_NODE.get()), is -> ModItems.ENDER_STAFF.get().getPearlCount(is)),
+						EnderStaffItem.Mode.LONG_CAST.getSerializedName(), new ChargePane(ModItems.ENDER_STAFF.get(), new ItemStack(Items.ENDER_EYE), is -> ModItems.ENDER_STAFF.get().getPearlCount(is))
+				)), Config.CLIENT.hudPositions.enderStaff.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.PYROMANCER_STAFF.get(), Settings.CLIENT.hudPositions.pyromancerStaff.get(), is -> ModItems.PYROMANCER_STAFF.get().getMode(is).getSerializedName(),
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.PYROMANCER_STAFF.get(), Config.CLIENT.hudPositions.pyromancerStaff.get(), is -> ModItems.PYROMANCER_STAFF.get().getMode(is).getSerializedName(),
 				Map.of(
 						PyromancerStaffItem.Mode.BLAZE.getSerializedName(), new ChargePane(ModItems.PYROMANCER_STAFF.get(), new ItemStack(Items.BLAZE_POWDER), is -> ModItems.PYROMANCER_STAFF.get().getInternalStorageItemCount(is, Items.BLAZE_POWDER)),
 						PyromancerStaffItem.Mode.FIRE_CHARGE.getSerializedName(), new ChargePane(ModItems.PYROMANCER_STAFF.get(), new ItemStack(Items.FIRE_CHARGE), is -> ModItems.PYROMANCER_STAFF.get().getInternalStorageItemCount(is, Items.FIRE_CHARGE)),
 						PyromancerStaffItem.Mode.ERUPTION.getSerializedName(), Box.createVertical(Box.Alignment.RIGHT, new TextPane("ERUPT"), new ChargePane(ModItems.PYROMANCER_STAFF.get(), new ItemStack(Items.BLAZE_POWDER), is -> ModItems.PYROMANCER_STAFF.get().getInternalStorageItemCount(is, Items.BLAZE_POWDER))),
 						PyromancerStaffItem.Mode.FLINT_AND_STEEL.getSerializedName(), new ItemStackPane(Items.FLINT_AND_STEEL)
-				)), Settings.CLIENT.hudPositions.pyromancerStaff.get()));
+				)), Config.CLIENT.hudPositions.pyromancerStaff.get()));
 
 		ChargePane rendingGaleFeatherPane = new ChargePane(ModItems.RENDING_GALE.get(), new ItemStack(Items.FEATHER), is -> {
 			LocalPlayer player = Minecraft.getInstance().player;
 			return player == null ? 0 : ModItems.RENDING_GALE.get().getFeatherCountClient(is, player) / 100;
 		});
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.RENDING_GALE.get(), Settings.CLIENT.hudPositions.rendingGale.get(), is -> ModItems.RENDING_GALE.get().getMode(is).getSerializedName(),
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.RENDING_GALE.get(), Config.CLIENT.hudPositions.rendingGale.get(), is -> ModItems.RENDING_GALE.get().getMode(is).getSerializedName(),
 				Map.of(
 						RendingGaleItem.Mode.PUSH.getSerializedName(), Box.createVertical(Box.Alignment.RIGHT, new TextPane("PUSH"), rendingGaleFeatherPane),
 						RendingGaleItem.Mode.PULL.getSerializedName(), Box.createVertical(Box.Alignment.RIGHT, new TextPane("PULL"), rendingGaleFeatherPane),
 						RendingGaleItem.Mode.BOLT.getSerializedName(), Box.createVertical(Box.Alignment.RIGHT, new TextPane("BOLT"), rendingGaleFeatherPane),
 						RendingGaleItem.Mode.FLIGHT.getSerializedName(), Box.createVertical(Box.Alignment.RIGHT, new TextPane("FLIGHT"), rendingGaleFeatherPane)
-				)), Settings.CLIENT.hudPositions.rendingGale.get()));
+				)), Config.CLIENT.hudPositions.rendingGale.get()));
 
 		Component contentsPane = new DynamicChargePane(ModItems.VOID_TEAR.get(),
-				is -> VoidTearItem.getTearContents(is, true), is -> VoidTearItem.getTearContents(is, true).getCount());
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.VOID_TEAR.get(), Settings.CLIENT.hudPositions.voidTear.get(), is -> ModItems.VOID_TEAR.get().getMode(is).getSerializedName(),
+				VoidTearItem::getTearContents, is -> VoidTearItem.getTearContents(is).getCount());
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.VOID_TEAR.get(), Config.CLIENT.hudPositions.voidTear.get(), is -> ModItems.VOID_TEAR.get().getMode(is).getSerializedName(),
 				Map.of(
 						VoidTearItem.Mode.FULL_INVENTORY.getSerializedName(), Box.createVertical(Box.Alignment.RIGHT, new TextPane(Language.getInstance().getOrDefault(VOID_TEAR_MODE_TRANSLATION + VoidTearItem.Mode.FULL_INVENTORY.getSerializedName().toLowerCase())), contentsPane),
 						VoidTearItem.Mode.NO_REFILL.getSerializedName(), Box.createVertical(Box.Alignment.RIGHT, new TextPane(Language.getInstance().getOrDefault(VOID_TEAR_MODE_TRANSLATION + VoidTearItem.Mode.NO_REFILL.getSerializedName().toLowerCase())), contentsPane),
@@ -270,27 +251,27 @@ public class ClientEventHandler {
 			@Override
 			public boolean shouldRender() {
 				LocalPlayer player = Minecraft.getInstance().player;
-				return player != null && !VoidTearItem.isEmpty(InventoryHelper.getCorrectItemFromEitherHand(player, ModItems.VOID_TEAR.get()), true);
+				return player != null && !ModItems.VOID_TEAR.get().isEmpty(InventoryHelper.getCorrectItemFromEitherHand(player, ModItems.VOID_TEAR.get()));
 			}
-		}, Settings.CLIENT.hudPositions.voidTear.get()));
+		}, Config.CLIENT.hudPositions.voidTear.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.HARVEST_ROD.get(), Settings.CLIENT.hudPositions.harvestRod.get(), is -> ModItems.HARVEST_ROD.get().getMode(is).getSerializedName(),
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.HARVEST_ROD.get(), Config.CLIENT.hudPositions.harvestRod.get(), is -> ModItems.HARVEST_ROD.get().getMode(is).getSerializedName(),
 				Map.of(
-						HarvestRodItem.Mode.BONE_MEAL.getSerializedName(), new ChargePane(ModItems.HARVEST_ROD.get(), new ItemStack(Items.BONE_MEAL), is -> ModItems.HARVEST_ROD.get().getBoneMealCount(is, true)),
+						HarvestRodItem.Mode.BONE_MEAL.getSerializedName(), new ChargePane(ModItems.HARVEST_ROD.get(), new ItemStack(Items.BONE_MEAL), is -> ModItems.HARVEST_ROD.get().getBoneMealCount(is)),
 						HarvestRodItem.Mode.HOE.getSerializedName(), new ItemStackPane(Items.WOODEN_HOE),
-						ChargeableItemInfoPane.DYNAMIC_PANE, new DynamicChargePane(ModItems.HARVEST_ROD.get(), is -> ModItems.HARVEST_ROD.get().getCurrentPlantable(is, true), is -> ModItems.HARVEST_ROD.get().getPlantableQuantity(is, ModItems.HARVEST_ROD.get().getCurrentPlantableSlot(is), true))
-				)), Settings.CLIENT.hudPositions.harvestRod.get()));
+						ChargeableItemInfoPane.DYNAMIC_PANE, new DynamicChargePane(ModItems.HARVEST_ROD.get(), is -> ModItems.HARVEST_ROD.get().getCurrentPlantable(is), is -> ModItems.HARVEST_ROD.get().getPlantableQuantity(is, ModItems.HARVEST_ROD.get().getCurrentPlantableSlot(is)))
+				)), Config.CLIENT.hudPositions.harvestRod.get()));
 
-		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.SOJOURNER_STAFF.get(), Settings.CLIENT.hudPositions.sojournerStaff.get(), is -> ChargeableItemInfoPane.DYNAMIC_PANE,
+		hudComponents.add(new Tuple<>(new ChargeableItemInfoPane(ModItems.SOJOURNER_STAFF.get(), Config.CLIENT.hudPositions.sojournerStaff.get(), is -> ChargeableItemInfoPane.DYNAMIC_PANE,
 				Map.of(
 						ChargeableItemInfoPane.DYNAMIC_PANE, new DynamicChargePane(ModItems.SOJOURNER_STAFF.get(), ModItems.SOJOURNER_STAFF.get()::getCurrentTorch, ModItems.SOJOURNER_STAFF.get()::getTorchCount)
-				)), Settings.CLIENT.hudPositions.sojournerStaff.get()));
+				)), Config.CLIENT.hudPositions.sojournerStaff.get()));
 
-		hudComponents.add(new Tuple<>(new HeroMedallionPane(), Settings.CLIENT.hudPositions.heroMedallion.get()));
+		hudComponents.add(new Tuple<>(new HeroMedallionPane(), Config.CLIENT.hudPositions.heroMedallion.get()));
 
-		hudComponents.add(new Tuple<>(Box.createVertical(Box.Alignment.RIGHT, new HandgunPane(InteractionHand.OFF_HAND), new HandgunPane(InteractionHand.MAIN_HAND)), Settings.CLIENT.hudPositions.handgun.get()));
+		hudComponents.add(new Tuple<>(Box.createVertical(Box.Alignment.RIGHT, new HandgunPane(InteractionHand.OFF_HAND), new HandgunPane(InteractionHand.MAIN_HAND)), Config.CLIENT.hudPositions.handgun.get()));
 
-		hudComponents.add(new Tuple<>(new CharmPane(), Settings.CLIENT.hudPositions.mobCharm.get()));
+		hudComponents.add(new Tuple<>(new CharmPane(), Config.CLIENT.hudPositions.mobCharm.get()));
 	}
 
 	private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -336,7 +317,7 @@ public class ClientEventHandler {
 
 	private static void registerVoidTearItemProperties() {
 		ItemProperties.register(ModItems.VOID_TEAR.get(), new ResourceLocation("empty"),
-				(stack, level, entity, seed) -> VoidTearItem.isEmpty(stack, true) ? 1.0F : 0.0F);
+				(stack, level, entity, seed) -> ModItems.VOID_TEAR.get().isEmpty(stack) ? 1.0F : 0.0F);
 	}
 
 	private static void registerInfernalTearItemProperties() {
@@ -375,7 +356,7 @@ public class ClientEventHandler {
 	private static void loadComplete(FMLLoadCompleteEvent event) {
 		event.enqueueWork(() -> {
 			PedestalClientRegistry.registerItemRenderer(FishingRodItem.class, PedestalFishHookRenderer::new);
-			MinecraftForge.EVENT_BUS.addListener(FortuneCoinToggler::handleKeyInputEvent);
+			NeoForge.EVENT_BUS.addListener(FortuneCoinToggler::handleKeyInputEvent);
 		});
 	}
 }

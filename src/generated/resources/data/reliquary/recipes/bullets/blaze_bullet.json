@@ -1,34 +1,27 @@
 {
-  "type": "forge:conditional",
-  "recipes": [
+  "neoforge:conditions": [
     {
-      "conditions": [
-        {
-          "type": "reliquary:handgun_enabled"
-        }
-      ],
-      "recipe": {
-        "type": "minecraft:crafting_shapeless",
-        "category": "misc",
-        "ingredients": [
-          {
-            "item": "minecraft:blaze_powder"
-          },
-          {
-            "tag": "forge:rods/blaze"
-          },
-          {
-            "tag": "forge:nuggets/gold"
-          },
-          {
-            "tag": "forge:nuggets/gold"
-          }
-        ],
-        "result": {
-          "count": 8,
-          "item": "reliquary:bullets/blaze_bullet"
-        }
-      }
+      "type": "reliquary:handgun_enabled"
     }
-  ]
+  ],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:blaze_powder"
+    },
+    {
+      "tag": "forge:rods/blaze"
+    },
+    {
+      "tag": "forge:nuggets/gold"
+    },
+    {
+      "tag": "forge:nuggets/gold"
+    }
+  ],
+  "result": {
+    "count": 8,
+    "item": "reliquary:bullets/blaze_bullet"
+  }
 }

@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_nebulous_heart",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_nebulous_heart"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:alkahestry_altar"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

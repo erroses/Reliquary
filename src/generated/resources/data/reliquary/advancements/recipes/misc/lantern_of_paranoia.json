@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_molten_core",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_molten_core"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:lantern_of_paranoia"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

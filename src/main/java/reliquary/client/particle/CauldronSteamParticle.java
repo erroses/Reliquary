@@ -1,17 +1,10 @@
 package reliquary.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.client.particle.*;
 
 import javax.annotation.Nullable;
 
-@OnlyIn(Dist.CLIENT)
 public class CauldronSteamParticle extends TextureSheetParticle {
 	private final SpriteSet spriteSet;
 
@@ -59,7 +52,6 @@ public class CauldronSteamParticle extends TextureSheetParticle {
 		return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public static class Provider implements ParticleProvider<SteamColorParticleData> {
 		private final SpriteSet spriteSet;
 

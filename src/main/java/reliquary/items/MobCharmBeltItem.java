@@ -14,10 +14,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import reliquary.common.gui.MobCharmBeltMenu;
 import reliquary.items.util.ICuriosItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 public class MobCharmBeltItem extends ItemBase implements ICuriosItem {
 	private static final String SLOTS_TAG = "Slots";
@@ -52,7 +51,7 @@ public class MobCharmBeltItem extends ItemBase implements ICuriosItem {
 		}
 
 		if (!world.isClientSide && player instanceof ServerPlayer serverPlayer) {
-			NetworkHooks.openScreen(serverPlayer, new SimpleMenuProvider((w, p, pl) -> new MobCharmBeltMenu(w, p, stack), stack.getHoverName()), buf -> buf.writeBoolean(hand == InteractionHand.MAIN_HAND));
+			serverPlayer.openMenu(new SimpleMenuProvider((w, p, pl) -> new MobCharmBeltMenu(w, p, stack), stack.getHoverName()), buf -> buf.writeBoolean(hand == InteractionHand.MAIN_HAND));
 		}
 
 		return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
@@ -164,7 +163,7 @@ public class MobCharmBeltItem extends ItemBase implements ICuriosItem {
 			ItemStack charmStack = ItemStack.of(mobCharms.getCompound(i));
 
 			if (MobCharmItem.isCharmFor(charmStack, entityRegistryName)) {
-				charmStack.hurtAndBreak(Settings.COMMON.items.mobCharm.damagePerKill.get(), player, p -> p.broadcastBreakEvent(EquipmentSlot.CHEST));
+				charmStack.hurtAndBreak(Config.COMMON.items.mobCharm.damagePerKill.get(), player, p -> p.broadcastBreakEvent(EquipmentSlot.CHEST));
 				if (charmStack.isEmpty()) {
 					removeMobCharmInSlot(belt, i);
 					return ItemStack.EMPTY;

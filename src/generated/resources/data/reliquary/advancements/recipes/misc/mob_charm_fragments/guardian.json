@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_guardian_spike",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_guardian_spike"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_fragments/guardian"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_molten_core",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_molten_core"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/blaze_rod"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

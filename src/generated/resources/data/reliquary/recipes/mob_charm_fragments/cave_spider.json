@@ -1,5 +1,6 @@
 {
   "type": "minecraft:crafting_shaped",
+  "category": "misc",
   "key": {
     "P": {
       "item": "reliquary:chelicerae"
@@ -8,10 +9,10 @@
       "tag": "forge:string"
     },
     "T": {
-      "type": "forge:nbt",
-      "count": 1,
+      "type": "neoforge:nbt",
       "item": "minecraft:potion",
-      "nbt": "{Potion:\"minecraft:poison\"}"
+      "strict": true,
+      "tag": "{Potion:\"minecraft:poison\"}"
     }
   },
   "pattern": [

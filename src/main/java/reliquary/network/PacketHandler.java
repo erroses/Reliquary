@@ -1,43 +1,37 @@
 package reliquary.network;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraft.world.entity.Entity;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
 import reliquary.reference.Reference;
 
 public class PacketHandler {
-	private PacketHandler() {}
-
-	private static SimpleChannel networkWrapper;
-	private static final String PROTOCOL = "1";
-
-	public static void init() {
-		networkWrapper = NetworkRegistry.newSimpleChannel(new ResourceLocation(Reference.MOD_ID, "channel"),
-				() -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
-
-		int idx = 0;
-		networkWrapper.registerMessage(idx++, PacketFXThrownPotionImpact.class, PacketFXThrownPotionImpact::encode, PacketFXThrownPotionImpact::decode, PacketFXThrownPotionImpact::onMessage);
-		networkWrapper.registerMessage(idx++, PacketFXConcussiveExplosion.class, PacketFXConcussiveExplosion::encode, PacketFXConcussiveExplosion::decode, PacketFXConcussiveExplosion::onMessage);
-		networkWrapper.registerMessage(idx++, PacketMobCharmDamage.class, PacketMobCharmDamage::encode, PacketMobCharmDamage::decode, PacketMobCharmDamage::onMessage);
-		networkWrapper.registerMessage(idx++, PacketPedestalFishHook.class, PacketPedestalFishHook::encode, PacketPedestalFishHook::decode, PacketPedestalFishHook::onMessage);
-		networkWrapper.registerMessage(idx++, PacketFortuneCoinTogglePressed.class, PacketFortuneCoinTogglePressed::encode, PacketFortuneCoinTogglePressed::decode, PacketFortuneCoinTogglePressed::onMessage);
-		networkWrapper.registerMessage(idx++, SpawnAngelheartVialParticlesPacket.class, (msg, packetBuffer) -> SpawnAngelheartVialParticlesPacket.encode(), packetBuffer1 -> SpawnAngelheartVialParticlesPacket.decode(), (spawnAngelheartVialParticlesPacket, contextSupplier) -> SpawnAngelheartVialParticlesPacket.onMessage(contextSupplier));
-		networkWrapper.registerMessage(idx++, SpawnPhoenixDownParticlesPacket.class, SpawnPhoenixDownParticlesPacket::encode, packetBuffer2 -> SpawnPhoenixDownParticlesPacket.decode(), SpawnPhoenixDownParticlesPacket::onMessage);
-		networkWrapper.registerMessage(idx, ScrolledItemPacket.class, ScrolledItemPacket::encode, ScrolledItemPacket::decode, ScrolledItemPacket::onMessage);
+	private PacketHandler() {
 	}
 
-	public static <M> void sendToClient(ServerPlayer player, M message) {
-		networkWrapper.sendTo(message, player.connection.connection, NetworkDirection.PLAY_TO_CLIENT);
+	public static void registerPackets(final RegisterPayloadHandlerEvent event) {
+		final IPayloadRegistrar registrar = event.registrar(Reference.MOD_ID).versioned("1.0");
+		registrar.play(SpawnThrownPotionImpactParticlesPacket.ID, SpawnThrownPotionImpactParticlesPacket::new, play -> play.client(SpawnThrownPotionImpactParticlesPacket::handle));
+		registrar.play(SpawnAngelheartVialParticlesPacket.ID, SpawnAngelheartVialParticlesPacket::new, play -> play.client(SpawnAngelheartVialParticlesPacket::handle));
+		registrar.play(SpawnPhoenixDownParticlesPacket.ID, buffer -> new SpawnPhoenixDownParticlesPacket(), play -> play.client(SpawnPhoenixDownParticlesPacket::handle));
+		registrar.play(ScrolledItemPacket.ID, ScrolledItemPacket::new, play -> play.server(ScrolledItemPacket::handle));
+		registrar.play(SpawnConcussiveExplosionParticlesPacket.ID, SpawnConcussiveExplosionParticlesPacket::new, play -> play.client(SpawnConcussiveExplosionParticlesPacket::handle));
+		registrar.play(MobCharmDamagePacket.ID, MobCharmDamagePacket::new, play -> play.client(MobCharmDamagePacket::handle));
+		registrar.play(PedestalFishHookPacket.ID, PedestalFishHookPacket::new, play -> play.client(PedestalFishHookPacket::handle));
+		registrar.play(FortuneCoinTogglePressedPacket.ID, FortuneCoinTogglePressedPacket::new, play -> play.server(FortuneCoinTogglePressedPacket::handle));
+
 	}
 
-	public static <M> void sendToServer(M message) {
-		networkWrapper.sendToServer(message);
+	public static void sendToAllNear(Entity entity, CustomPacketPayload packet, double range) {
+		PacketDistributor.NEAR.with(
+				PacketDistributor.TargetPoint.p(entity.getX(), entity.getY(), entity.getZ(), range, entity.level().dimension()).get()
+		).send(packet);
 	}
 
-	public static <M> void sendToAllAround(M message, PacketDistributor.TargetPoint targetPoint) {
-		networkWrapper.send(PacketDistributor.NEAR.with(() -> targetPoint), message);
+	public static void sendToPlayer(ServerPlayer player, CustomPacketPayload packet) {
+		PacketDistributor.PLAYER.with(player).send(packet);
 	}
 }

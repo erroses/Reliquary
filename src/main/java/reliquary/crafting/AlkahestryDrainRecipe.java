@@ -1,11 +1,10 @@
 package reliquary.crafting;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -13,24 +12,18 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.crafting.CraftingHelper;
 import reliquary.init.ModItems;
 import reliquary.items.AlkahestryTomeItem;
-import reliquary.reference.Settings;
-
-import javax.annotation.Nullable;
 
 public class AlkahestryDrainRecipe implements CraftingRecipe {
 	private final int chargeToDrain;
 	private final ItemStack result;
-	private final ResourceLocation id;
 	private final Ingredient tomeIngredient;
 
-	private AlkahestryDrainRecipe(ResourceLocation id, int chargeToDrain, ItemStack result) {
+	public AlkahestryDrainRecipe(int chargeToDrain, ItemStack result) {
 		this.chargeToDrain = chargeToDrain;
 		this.result = result;
-		this.id = id;
-		tomeIngredient = Ingredient.of(AlkahestryTomeItem.setCharge(new ItemStack(ModItems.ALKAHESTRY_TOME.get()), Settings.COMMON.items.alkahestryTome.chargeLimit.get()));
+		tomeIngredient = Ingredient.of(AlkahestryTomeItem.setCharge(new ItemStack(ModItems.ALKAHESTRY_TOME.get()), AlkahestryTomeItem.getChargeLimit()));
 		AlkahestryRecipeRegistry.setDrainRecipe(this);
 	}
 
@@ -97,11 +90,6 @@ public class AlkahestryDrainRecipe implements CraftingRecipe {
 	}
 
 	@Override
-	public ResourceLocation getId() {
-		return id;
-	}
-
-	@Override
 	public NonNullList<ItemStack> getRemainingItems(CraftingContainer inv) {
 		NonNullList<ItemStack> ret = CraftingRecipe.super.getRemainingItems(inv);
 		for (int slot = 0; slot < inv.getContainerSize(); slot++) {
@@ -129,18 +117,21 @@ public class AlkahestryDrainRecipe implements CraftingRecipe {
 	}
 
 	public static class Serializer implements RecipeSerializer<AlkahestryDrainRecipe> {
-		@Override
-		public AlkahestryDrainRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			int chargeToDrain = GsonHelper.getAsInt(json, "charge");
-			ItemStack result = CraftingHelper.getItemStack(GsonHelper.getAsJsonObject(json, "result"), true);
+		private final Codec<AlkahestryDrainRecipe> codec = RecordCodecBuilder.create(
+				instance -> instance.group(
+								Codec.INT.fieldOf("charge").forGetter(recipe -> recipe.chargeToDrain),
+								ItemStack.CODEC.fieldOf("result").forGetter(recipe -> recipe.result)
+						)
+						.apply(instance, AlkahestryDrainRecipe::new));
 
-			return new AlkahestryDrainRecipe(recipeId, chargeToDrain, result);
+		@Override
+		public Codec<AlkahestryDrainRecipe> codec() {
+			return codec;
 		}
 
-		@Nullable
 		@Override
-		public AlkahestryDrainRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-			return new AlkahestryDrainRecipe(recipeId, buffer.readInt(), buffer.readItem());
+		public AlkahestryDrainRecipe fromNetwork(FriendlyByteBuf buffer) {
+			return new AlkahestryDrainRecipe(buffer.readInt(), buffer.readItem());
 		}
 
 		@Override

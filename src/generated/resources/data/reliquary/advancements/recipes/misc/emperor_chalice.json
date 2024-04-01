@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_void_tear",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_void_tear"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:emperor_chalice"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

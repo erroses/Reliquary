@@ -4,8 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -22,11 +20,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
 import reliquary.init.ModEntities;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.RandHelper;
 
 import static reliquary.items.IceMagusRodItem.ICE_PARTICLE;
@@ -45,15 +40,15 @@ public class SpecialSnowballEntity extends ThrowableItemProjectile {
 	}
 
 	private int getSnowballDamage() {
-		return fromGlacialStaff ? Settings.COMMON.items.glacialStaff.snowballDamage.get() : Settings.COMMON.items.iceMagusRod.snowballDamage.get();
+		return fromGlacialStaff ? Config.COMMON.items.glacialStaff.snowballDamage.get() : Config.COMMON.items.iceMagusRod.snowballDamage.get();
 	}
 
 	private int getSnowballDamageFireImmuneBonus() {
-		return fromGlacialStaff ? Settings.COMMON.items.glacialStaff.snowballDamageBonusFireImmune.get() : Settings.COMMON.items.iceMagusRod.snowballDamageBonusFireImmune.get();
+		return fromGlacialStaff ? Config.COMMON.items.glacialStaff.snowballDamageBonusFireImmune.get() : Config.COMMON.items.iceMagusRod.snowballDamageBonusFireImmune.get();
 	}
 
 	private int getSnowballDamageBlazeBonus() {
-		return fromGlacialStaff ? Settings.COMMON.items.glacialStaff.snowballDamageBonusBlaze.get() : Settings.COMMON.items.iceMagusRod.snowballDamageBonusBlaze.get();
+		return fromGlacialStaff ? Config.COMMON.items.glacialStaff.snowballDamageBonusBlaze.get() : Config.COMMON.items.iceMagusRod.snowballDamageBonusBlaze.get();
 	}
 
 	/**
@@ -113,7 +108,6 @@ public class SpecialSnowballEntity extends ThrowableItemProjectile {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public void handleEntityEvent(byte id) {
 		if (id == 3) {
 			ItemStack stack = getItemRaw();
@@ -125,12 +119,6 @@ public class SpecialSnowballEntity extends ThrowableItemProjectile {
 		}
 	}
 
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
-	}
-
-	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean shouldRenderAtSqrDistance(double distance) {
 		double d0 = 4.0D;

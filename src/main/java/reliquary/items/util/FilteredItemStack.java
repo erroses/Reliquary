@@ -3,8 +3,8 @@ package reliquary.items.util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 public class FilteredItemStack implements INBTSerializable<CompoundTag> {
 	private ItemStack filter;
@@ -50,7 +50,7 @@ public class FilteredItemStack implements INBTSerializable<CompoundTag> {
 	@Override
 	public CompoundTag serializeNBT() {
 		CompoundTag ret = new CompoundTag();
-		ret.put("filter", filter.serializeNBT());
+		ret.put("filter", filter.save(new CompoundTag()));
 		ret.putInt("amount", count);
 		return ret;
 	}

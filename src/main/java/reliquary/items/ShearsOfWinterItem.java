@@ -17,11 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.ShearsItem;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -32,9 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.IForgeShearable;
+import net.neoforged.neoforge.common.IShearable;
 import reliquary.entities.EntityXRFakePlayer;
 import reliquary.util.RandHelper;
 import reliquary.util.TooltipBuilder;
@@ -133,7 +127,6 @@ public class ShearsOfWinterItem extends ShearsItem implements ICreativeTabItemGe
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack shears, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
 		TooltipBuilder.of(tooltip).itemTooltip(this);
 	}
@@ -151,7 +144,7 @@ public class ShearsOfWinterItem extends ShearsItem implements ICreativeTabItemGe
 		Level world = player.level();
 		BlockState blockState = world.getBlockState(pos);
 		Block block = blockState.getBlock();
-		if (block instanceof IForgeShearable target) {
+		if (block instanceof IShearable target) {
 			ItemStack dummyShears = new ItemStack(Items.SHEARS);
 			if (target.isShearable(dummyShears, world, pos) && removeBlock(player, pos, blockState.canHarvestBlock(world, pos, player))) {
 				player.awardStat(Stats.BLOCK_MINED.get(block));
@@ -201,14 +194,14 @@ public class ShearsOfWinterItem extends ShearsItem implements ICreativeTabItemGe
 			if (!e.is(player)) {
 				e.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 120, 1));
 			}
-			if (e instanceof IForgeShearable) {
+			if (e instanceof IShearable) {
 				shearEntity(stack, player, rand, e);
 			}
 		}
 	}
 
 	private void shearEntity(ItemStack stack, Player player, RandomSource rand, Mob e) {
-		IForgeShearable target = (IForgeShearable) e;
+		IShearable target = (IShearable) e;
 		BlockPos pos = e.blockPosition();
 		if (target.isShearable(new ItemStack(Items.SHEARS), e.level(), pos)) {
 			List<ItemStack> drops = target.onSheared(player, stack, e.level(), pos, stack.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE));

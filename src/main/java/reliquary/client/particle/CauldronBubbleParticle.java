@@ -1,17 +1,10 @@
 package reliquary.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraft.client.particle.*;
 
 import javax.annotation.Nullable;
 
-@OnlyIn(Dist.CLIENT)
 public class CauldronBubbleParticle extends TextureSheetParticle {
 	private static final int FRAMES_OF_EACH_POP_STAGE = 2;
 	private static final int POP_STAGES = 3;
@@ -66,7 +59,6 @@ public class CauldronBubbleParticle extends TextureSheetParticle {
 		return ParticleRenderType.PARTICLE_SHEET_OPAQUE;
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public static class Provider implements ParticleProvider<BubbleColorParticleData> {
 		private final SpriteSet spriteSet;
 

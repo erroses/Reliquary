@@ -9,14 +9,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraftforge.event.AnvilUpdateEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.LogicalSide;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.event.AnvilUpdateEvent;
+import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.neoforge.event.entity.living.LivingAttackEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import reliquary.blocks.PassivePedestalBlock;
 import reliquary.init.ModItems;
 import reliquary.items.RendingGaleItem;
@@ -29,7 +29,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class CommonEventHandler {
-	private CommonEventHandler() {}
+	private CommonEventHandler() {
+	}
 
 	private static final Set<IPlayerHurtHandler> playerHurtHandlers = Sets.newTreeSet(new HandlerPriorityComparator());
 	private static final Set<IPlayerDeathHandler> playerDeathHandlers = Sets.newTreeSet(new HandlerPriorityComparator());
@@ -94,7 +95,6 @@ public class CommonEventHandler {
 
 		if (cancel) {
 			event.setCanceled(true);
-			event.setResult(null);
 		}
 	}
 
@@ -114,7 +114,6 @@ public class CommonEventHandler {
 
 		if (cancel) {
 			event.setCanceled(true);
-			event.setResult(null);
 		}
 	}
 

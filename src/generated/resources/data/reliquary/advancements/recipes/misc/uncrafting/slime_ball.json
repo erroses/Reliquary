@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_slime_pearl",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_slime_pearl"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/slime_ball"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

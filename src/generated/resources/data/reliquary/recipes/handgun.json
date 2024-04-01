@@ -1,42 +1,34 @@
 {
-  "type": "forge:conditional",
-  "recipes": [
+  "neoforge:conditions": [
     {
-      "conditions": [
-        {
-          "type": "reliquary:handgun_enabled"
-        }
-      ],
-      "recipe": {
-        "type": "minecraft:crafting_shaped",
-        "category": "misc",
-        "key": {
-          "B": {
-            "item": "reliquary:barrel_assembly"
-          },
-          "G": {
-            "item": "reliquary:grip_assembly"
-          },
-          "I": {
-            "tag": "forge:ingots/iron"
-          },
-          "M": {
-            "item": "reliquary:hammer_assembly"
-          },
-          "S": {
-            "item": "reliquary:slime_pearl"
-          }
-        },
-        "pattern": [
-          "BIM",
-          "ISI",
-          "IGI"
-        ],
-        "result": {
-          "item": "reliquary:handgun"
-        },
-        "show_notification": true
-      }
+      "type": "reliquary:handgun_enabled"
     }
-  ]
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "reliquary:barrel_assembly"
+    },
+    "G": {
+      "item": "reliquary:grip_assembly"
+    },
+    "I": {
+      "tag": "forge:ingots/iron"
+    },
+    "M": {
+      "item": "reliquary:hammer_assembly"
+    },
+    "S": {
+      "item": "reliquary:slime_pearl"
+    }
+  },
+  "pattern": [
+    "BIM",
+    "ISI",
+    "IGI"
+  ],
+  "result": {
+    "item": "reliquary:handgun"
+  }
 }

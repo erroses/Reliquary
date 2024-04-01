@@ -2,16 +2,13 @@ package reliquary.client.init;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.alchemy.PotionUtils;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.common.ForgeSpawnEggItem;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import reliquary.items.BulletItem;
 import reliquary.items.MobCharmFragmentItem;
 import reliquary.items.MobCharmItem;
@@ -24,9 +21,9 @@ import java.util.Optional;
 
 import static reliquary.init.ModItems.*;
 
-@OnlyIn(Dist.CLIENT)
 public class ModItemColors {
-	private ModItemColors() {}
+	private ModItemColors() {
+	}
 
 	public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
 		registerMobCharmItemColors(event);
@@ -41,7 +38,7 @@ public class ModItemColors {
 	private static void registerVoidTearItemColors(RegisterColorHandlersEvent.Item event) {
 		event.register((stack, tintIndex) -> {
 			if (Screen.hasShiftDown()) {
-				ItemStack containedStack = VoidTearItem.getTearContents(stack, true);
+				ItemStack containedStack = VoidTearItem.getTearContents(stack);
 				if (!containedStack.isEmpty()) {
 					return Minecraft.getInstance().getItemColors().getColor(containedStack, tintIndex);
 				}
@@ -111,8 +108,10 @@ public class ModItemColors {
 	}
 
 	private static Optional<SpawnEggItem> getEgg(ResourceLocation entityName) {
-		return Optional.ofNullable(ForgeSpawnEggItem.fromEntityType(ForgeRegistries.ENTITY_TYPES.getValue(entityName)));
+		return Optional.ofNullable(SpawnEggItem.byId(BuiltInRegistries.ENTITY_TYPE.get(entityName)));
 	}
 
-	private static int getColor(ItemStack stack) {return PotionUtils.getColor(((IPotionItem) stack.getItem()).getEffects(stack));}
+	private static int getColor(ItemStack stack) {
+		return PotionUtils.getColor(((IPotionItem) stack.getItem()).getEffects(stack));
+	}
 }

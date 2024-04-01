@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_empty_bullet",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_empty_bullet"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:gold_nugget"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

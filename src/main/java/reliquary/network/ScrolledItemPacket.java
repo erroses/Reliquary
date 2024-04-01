@@ -1,40 +1,46 @@
 package reliquary.network;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.PlayPayloadContext;
 import reliquary.items.util.IScrollableItem;
+import reliquary.reference.Reference;
 
-import java.util.function.Supplier;
+public class ScrolledItemPacket implements CustomPacketPayload {
 
-public class ScrolledItemPacket {
+	public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "scrolled_item");
 	private final double scrollDelta;
 
 	public ScrolledItemPacket(double scrollDelta) {
 		this.scrollDelta = scrollDelta;
 	}
 
-	static void encode(ScrolledItemPacket msg, FriendlyByteBuf buffer) {
-		buffer.writeDouble(msg.scrollDelta);
+	public ScrolledItemPacket(FriendlyByteBuf buffer) {
+		this(buffer.readDouble());
 	}
 
-	static ScrolledItemPacket decode(FriendlyByteBuf packetBuffer) {
-		return new ScrolledItemPacket(packetBuffer.readDouble());
+	public void handle(PlayPayloadContext context) {
+		context.workHandler().execute(() -> context.player().ifPresent(player -> handleMessage(player, scrollDelta)));
 	}
 
-	static void onMessage(ScrolledItemPacket msg, Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context context = contextSupplier.get();
-		//noinspection ConstantConditions - always runs on server where sender is available
-		context.enqueueWork(() -> handleMessage(msg, contextSupplier.get().getSender()));
-		context.setPacketHandled(true);
-	}
-
-	private static void handleMessage(ScrolledItemPacket msg, ServerPlayer sender) {
+	private void handleMessage(Player sender, double scrollDelta) {
 		ItemStack stack = sender.getMainHandItem();
 
 		if (stack.getItem() instanceof IScrollableItem leftClickableItem) {
-			leftClickableItem.onMouseScrolled(stack, sender, msg.scrollDelta);
+			leftClickableItem.onMouseScrolled(stack, sender, scrollDelta);
 		}
+	}
+
+	@Override
+	public void write(FriendlyByteBuf buffer) {
+		buffer.writeDouble(scrollDelta);
+	}
+
+	@Override
+	public ResourceLocation id() {
+		return ID;
 	}
 }

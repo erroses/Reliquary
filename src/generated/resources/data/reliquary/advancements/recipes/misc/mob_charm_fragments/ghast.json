@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_catalyzing_gland",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_catalyzing_gland"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_fragments/ghast"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

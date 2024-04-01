@@ -1,20 +1,13 @@
 {
-  "type": "forge:conditional",
-  "recipes": [
+  "neoforge:conditions": [
     {
-      "conditions": [
-        {
-          "type": "reliquary:alkahestry_enabled"
-        }
-      ],
-      "recipe": {
-        "type": "reliquary:alkahestry_crafting",
-        "charge": 64,
-        "ingredient": {
-          "tag": "forge:gems/diamond"
-        },
-        "result_count": 2
-      }
+      "type": "reliquary:alkahestry_enabled"
     }
-  ]
+  ],
+  "type": "reliquary:alkahestry_crafting",
+  "charge": 64,
+  "ingredient": {
+    "tag": "forge:gems/diamond"
+  },
+  "result_count": 2
 }

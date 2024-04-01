@@ -10,12 +10,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import reliquary.entities.potion.AphroditePotionEntity;
 import reliquary.init.ModItems;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 public class AphroditePotionItem extends ItemBase {
 
 	public AphroditePotionItem() {
-		super(new Properties(), Settings.COMMON.disable.disablePotions);
+		super(new Properties(), Config.COMMON.disable.disablePotions);
 	}
 
 	@Override

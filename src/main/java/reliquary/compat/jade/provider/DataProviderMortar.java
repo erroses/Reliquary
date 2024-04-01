@@ -18,7 +18,6 @@ import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.config.IPluginConfig;
 import snownee.jade.api.ui.IElement;
 import snownee.jade.api.ui.IElementHelper;
-import snownee.jade.impl.ui.ProgressArrowElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +54,7 @@ public class DataProviderMortar extends CachedBodyDataProvider implements IServe
 			lines.add(createPestleProgress(helper, pestleUsedCounter));
 
 			TooltipBuilder.of(effectTooltips).potionEffects(effects);
-			lines.addAll(effectTooltips.stream().map(text -> List.of(helper.text(text))).toList());
+			lines.addAll(effectTooltips.stream().map(text -> List.<IElement>of(helper.text(text))).toList());
 		}
 		return lines;
 	}
@@ -65,7 +64,7 @@ public class DataProviderMortar extends CachedBodyDataProvider implements IServe
 		XRPotionHelper.addPotionEffectsToStack(stack, effects);
 
 		return List.of(
-				new ProgressArrowElement((float) pestleUsedCounter / ApothecaryMortarBlockEntity.PESTLE_USAGE_MAX),
+				helper.progress((float) pestleUsedCounter / ApothecaryMortarBlockEntity.PESTLE_USAGE_MAX),
 				helper.item(stack)
 		);
 	}

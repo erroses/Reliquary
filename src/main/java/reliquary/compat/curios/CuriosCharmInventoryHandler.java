@@ -15,7 +15,7 @@ public class CuriosCharmInventoryHandler extends MobCharmItem.CharmInventoryHand
 		if (super.playerHasMobCharm(player, charmDefinition)) {
 			return true;
 		}
-		return CuriosApi.getCuriosHelper().getCuriosHandler(player).map(handler -> handler.getStacksHandler(ICuriosItem.Type.BELT.getIdentifier()).map(stackHandler -> {
+		return CuriosApi.getCuriosInventory(player).map(handler -> handler.getStacksHandler(ICuriosItem.Type.BELT.getIdentifier()).map(stackHandler -> {
 			for (int slot = 0; slot < stackHandler.getSlots(); slot++) {
 				ItemStack baubleStack = stackHandler.getStacks().getStackInSlot(slot);
 				if (!baubleStack.isEmpty() && baubleStack.getItem() == ModItems.MOB_CHARM_BELT.get() && ModItems.MOB_CHARM_BELT.get().hasCharm(baubleStack, charmDefinition.getRegistryName())) {
@@ -27,11 +27,11 @@ public class CuriosCharmInventoryHandler extends MobCharmItem.CharmInventoryHand
 	}
 
 	@Override
-	public boolean damagePlayersMobCharm(Player player, String entityRegistryName) {
+	public boolean damagePlayersMobCharm(ServerPlayer player, String entityRegistryName) {
 		if (super.damagePlayersMobCharm(player, entityRegistryName)) {
 			return true;
 		}
-		return CuriosApi.getCuriosHelper().getCuriosHandler(player).map(handler -> handler.getStacksHandler(ICuriosItem.Type.BELT.getIdentifier()).map(stackHandler -> {
+		return CuriosApi.getCuriosInventory(player).map(handler -> handler.getStacksHandler(ICuriosItem.Type.BELT.getIdentifier()).map(stackHandler -> {
 			for (int slot = 0; slot < stackHandler.getSlots(); slot++) {
 				ItemStack baubleStack = stackHandler.getStacks().getStackInSlot(slot);
 

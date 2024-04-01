@@ -30,10 +30,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import reliquary.items.util.IScrollableItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.RandHelper;
 import reliquary.util.RegistryHelper;
@@ -72,7 +70,6 @@ public class PyromancerStaffItem extends ToggleableItem implements IScrollableIt
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack staff, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		AtomicInteger charges = new AtomicInteger(0);
 		AtomicInteger blaze = new AtomicInteger(0);
@@ -286,35 +283,35 @@ public class PyromancerStaffItem extends ToggleableItem implements IScrollableIt
 	}
 
 	private int getFireChargeWorth() {
-		return Settings.COMMON.items.pyromancerStaff.fireChargeWorth.get();
+		return Config.COMMON.items.pyromancerStaff.fireChargeWorth.get();
 	}
 
 	private int getFireChargeCost() {
-		return Settings.COMMON.items.pyromancerStaff.fireChargeCost.get();
+		return Config.COMMON.items.pyromancerStaff.fireChargeCost.get();
 	}
 
 	private int getFireChargeLimit() {
-		return Settings.COMMON.items.pyromancerStaff.fireChargeLimit.get();
+		return Config.COMMON.items.pyromancerStaff.fireChargeLimit.get();
 	}
 
 	private int getBlazePowderWorth() {
-		return Settings.COMMON.items.pyromancerStaff.blazePowderWorth.get();
+		return Config.COMMON.items.pyromancerStaff.blazePowderWorth.get();
 	}
 
 	private int getBlazePowderCost() {
-		return Settings.COMMON.items.pyromancerStaff.blazePowderCost.get();
+		return Config.COMMON.items.pyromancerStaff.blazePowderCost.get();
 	}
 
 	private int getBlazePowderLimit() {
-		return Settings.COMMON.items.pyromancerStaff.blazePowderLimit.get();
+		return Config.COMMON.items.pyromancerStaff.blazePowderLimit.get();
 	}
 
 	private int getBlazeAbsorbWorth() {
-		return Settings.COMMON.items.pyromancerStaff.blazeAbsorbWorth.get();
+		return Config.COMMON.items.pyromancerStaff.blazeAbsorbWorth.get();
 	}
 
 	private int getGhastAbsorbWorth() {
-		return Settings.COMMON.items.pyromancerStaff.ghastAbsorbWorth.get();
+		return Config.COMMON.items.pyromancerStaff.ghastAbsorbWorth.get();
 	}
 
 	private void doExtinguishEffect(Player player) {

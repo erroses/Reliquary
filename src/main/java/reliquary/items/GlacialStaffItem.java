@@ -18,8 +18,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import reliquary.util.NBTHelper;
 import reliquary.util.TooltipBuilder;
 
@@ -38,7 +36,6 @@ public class GlacialStaffItem extends IceMagusRodItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack staff, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		tooltipBuilder.charge(this, ".tooltip2", NBTHelper.getInt(SNOWBALLS_TAG, staff));
 		if (isEnabled(staff)) {

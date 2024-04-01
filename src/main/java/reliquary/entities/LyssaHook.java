@@ -2,15 +2,9 @@ package reliquary.entities;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.FishingHook;
@@ -18,21 +12,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 import reliquary.init.ModEntities;
 import reliquary.init.ModItems;
-import reliquary.reference.Settings;
-import reliquary.util.LogHelper;
+import reliquary.reference.Config;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
-public class LyssaHook extends FishingHook implements IEntityAdditionalSpawnData {
+public class LyssaHook extends FishingHook implements IEntityWithComplexSpawn {
 	public LyssaHook(EntityType<LyssaHook> entityType, Level world) {
 		this(entityType, world, 0, 0);
 	}
@@ -72,7 +60,6 @@ public class LyssaHook extends FishingHook implements IEntityAdditionalSpawnData
 		xRotO = getXRot();
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	@Override
 	public boolean shouldRenderAtSqrDistance(double distance) {
 		//much higher visible range than regular hook
@@ -183,7 +170,7 @@ public class LyssaHook extends FishingHook implements IEntityAdditionalSpawnData
 
 	private boolean canStealFromEntity() {
 		Entity hookedIn = getHookedIn();
-		return hookedIn instanceof LivingEntity && (Settings.COMMON.items.rodOfLyssa.stealFromPlayers.get() || !(hookedIn instanceof Player)) && Settings.COMMON.items.rodOfLyssa.canStealFromEntity(hookedIn);
+		return hookedIn instanceof LivingEntity && (Config.COMMON.items.rodOfLyssa.stealFromPlayers.get() || !(hookedIn instanceof Player)) && Config.COMMON.items.rodOfLyssa.canStealFromEntity(hookedIn);
 	}
 
 	private void pullItemEntitiesWithHook() {
@@ -208,7 +195,7 @@ public class LyssaHook extends FishingHook implements IEntityAdditionalSpawnData
 		EquipmentSlot slotBeingStolenFrom = EquipmentSlot.values()[level().random.nextInt(EquipmentSlot.values().length)];
 
 		ItemStack stolenStack = livingEntity.getItemBySlot(slotBeingStolenFrom);
-		if (stolenStack.isEmpty() && Boolean.TRUE.equals(Settings.COMMON.items.rodOfLyssa.stealFromVacantSlots.get())) {
+		if (stolenStack.isEmpty() && Boolean.TRUE.equals(Config.COMMON.items.rodOfLyssa.stealFromVacantSlots.get())) {
 			for (EquipmentSlot slot : EquipmentSlot.values()) {
 				stolenStack = livingEntity.getItemBySlot(slot);
 				if (!stolenStack.isEmpty() && canDropFromSlot(livingEntity, slot)) {
@@ -228,18 +215,19 @@ public class LyssaHook extends FishingHook implements IEntityAdditionalSpawnData
 
 		Player fishingPlayer = p.get();
 
-		if (Boolean.TRUE.equals(Settings.COMMON.items.rodOfLyssa.useLeveledFailureRate.get())) {
-			failProbabilityFactor = 1F / ((float) Math.sqrt(Math.max(1, Math.min(fishingPlayer.experienceLevel, Settings.COMMON.items.rodOfLyssa.levelCapForLeveledFormula.get()))) * 2);
+		if (Boolean.TRUE.equals(Config.COMMON.items.rodOfLyssa.useLeveledFailureRate.get())) {
+			failProbabilityFactor = 1F / ((float) Math.sqrt(Math.max(1, Math.min(fishingPlayer.experienceLevel, Config.COMMON.items.rodOfLyssa.levelCapForLeveledFormula.get()))) * 2);
 		} else {
-			failProbabilityFactor = Settings.COMMON.items.rodOfLyssa.flatStealFailurePercentRate.get() / 100F;
+			failProbabilityFactor = Config.COMMON.items.rodOfLyssa.flatStealFailurePercentRate.get() / 100F;
 		}
 
-		if ((random.nextFloat() <= failProbabilityFactor || (stolenStack.isEmpty() && Settings.COMMON.items.rodOfLyssa.failStealFromVacantSlots.get())) && Boolean.TRUE.equals(Settings.COMMON.items.rodOfLyssa.angerOnStealFailure.get())) {
+		if ((random.nextFloat() <= failProbabilityFactor || (stolenStack.isEmpty() && Config.COMMON.items.rodOfLyssa.failStealFromVacantSlots.get())) && Boolean.TRUE.equals(Config.COMMON.items.rodOfLyssa.angerOnStealFailure.get())) {
 			livingEntity.hurt(damageSources().playerAttack(fishingPlayer), 0.0F);
 		}
 		if (!stolenStack.isEmpty()) {
 			int randomItemDamage = level().random.nextInt(3);
-			stolenStack.hurtAndBreak(randomItemDamage, livingEntity, e -> {});
+			stolenStack.hurtAndBreak(randomItemDamage, livingEntity, e -> {
+			});
 			ItemEntity entityitem = new ItemEntity(level(), getX(), getY(), getZ(), stolenStack);
 			entityitem.setPickUpDelay(5);
 			double d1 = fishingPlayer.getX() - getX();
@@ -259,25 +247,10 @@ public class LyssaHook extends FishingHook implements IEntityAdditionalSpawnData
 			return true;
 		}
 
-		try {
-			if (slot.getType() == EquipmentSlot.Type.HAND) {
-				return ((float[]) HANDS_CHANCES.get(mob))[slot.getIndex()] > -1;
-			} else {
-				return ((float[]) ARMOR_CHANCES.get(mob))[slot.getIndex()] > -1;
-			}
+		if (slot.getType() == EquipmentSlot.Type.HAND) {
+			return mob.handDropChances[slot.getIndex()] > -1;
+		} else {
+			return mob.armorDropChances[slot.getIndex()] > -1;
 		}
-		catch (IllegalAccessException e) {
-			LogHelper.error(e);
-		}
-
-		return false;
-	}
-
-	private static final Field HANDS_CHANCES = ObfuscationReflectionHelper.findField(Mob.class, "f_21347_");
-	private static final Field ARMOR_CHANCES = ObfuscationReflectionHelper.findField(Mob.class, "f_21348_");
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 }

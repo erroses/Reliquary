@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_kraken_shell_fragment",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_kraken_shell_fragment"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:serpent_staff"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

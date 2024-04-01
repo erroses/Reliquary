@@ -4,8 +4,6 @@ import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -25,25 +23,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 import reliquary.init.ModEntities;
 import reliquary.init.ModItems;
 import reliquary.items.util.IPotionItem;
-import reliquary.network.PacketFXThrownPotionImpact;
 import reliquary.network.PacketHandler;
+import reliquary.network.SpawnThrownPotionImpactParticlesPacket;
 import reliquary.util.potions.XRPotionHelper;
 
 import java.util.List;
 
-@OnlyIn(
-		value = Dist.CLIENT,
-		_interface = ItemSupplier.class
-)
-public class ThrownXRPotionEntity extends ThrowableProjectile implements IEntityAdditionalSpawnData, ItemSupplier {
+public class ThrownXRPotionEntity extends ThrowableProjectile implements IEntityWithComplexSpawn, ItemSupplier {
 	private static final EntityDataAccessor<ItemStack> ITEM = SynchedEntityData.defineId(ThrownXRPotionEntity.class, EntityDataSerializers.ITEM_STACK);
 
 	public ThrownXRPotionEntity(EntityType<ThrownXRPotionEntity> entityType, Level world) {
@@ -146,7 +136,7 @@ public class ThrownXRPotionEntity extends ThrowableProjectile implements IEntity
 		}
 
 		level().playSound(null, blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 1.0F, level().random.nextFloat() * 0.1F + 0.9F);
-		PacketHandler.sendToAllAround(new PacketFXThrownPotionImpact(color, getX(), getY(), getZ()), new PacketDistributor.TargetPoint(getX(), getY(), getZ(), 32.0D, level().dimension()));
+		PacketHandler.sendToAllNear(this, new SpawnThrownPotionImpactParticlesPacket(color, getX(), getY(), getZ()), 32.0D);
 	}
 
 	@Override
@@ -183,11 +173,6 @@ public class ThrownXRPotionEntity extends ThrowableProjectile implements IEntity
 	@Override
 	public void readSpawnData(FriendlyByteBuf additionalData) {
 		setItem(additionalData.readItem());
-	}
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 }
 

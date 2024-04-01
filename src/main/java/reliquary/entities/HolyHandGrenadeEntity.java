@@ -2,8 +2,6 @@ package reliquary.entities;
 
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ItemSupplier;
@@ -12,17 +10,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
 import reliquary.init.ModEntities;
 import reliquary.init.ModItems;
 
 @SuppressWarnings("squid:S2160")
-@OnlyIn(
-		value = Dist.CLIENT,
-		_interface = ItemSupplier.class
-)
 public class HolyHandGrenadeEntity extends ThrowableProjectile implements ItemSupplier {
 	private int count = 0;
 	private Player playerThrower;
@@ -87,10 +78,5 @@ public class HolyHandGrenadeEntity extends ThrowableProjectile implements ItemSu
 	@Override
 	public ItemStack getItem() {
 		return new ItemStack(ModItems.HOLY_HAND_GRENADE.get());
-	}
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 }

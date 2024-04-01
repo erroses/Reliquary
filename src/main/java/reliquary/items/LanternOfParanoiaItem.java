@@ -5,6 +5,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,9 +28,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraftforge.registries.ForgeRegistries;
 import reliquary.init.ModItems;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.InventoryHelper;
 
 import javax.annotation.Nullable;
@@ -59,7 +60,7 @@ public class LanternOfParanoiaItem extends ToggleableItem {
 	}
 
 	public int getRange() {
-		return Settings.COMMON.items.lanternOfParanoia.placementScanRadius.get();
+		return Config.COMMON.items.lanternOfParanoia.placementScanRadius.get();
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public class LanternOfParanoiaItem extends ToggleableItem {
 
 	private boolean tryToPlaceAtPos(ItemStack stack, Level world, Player player, BlockPos pos) {
 		int lightLevel = player.level().getBrightness(LightLayer.BLOCK, pos);
-		if (lightLevel > Settings.COMMON.items.lanternOfParanoia.minLightLevel.get()) {
+		if (lightLevel > Config.COMMON.items.lanternOfParanoia.minLightLevel.get()) {
 			return false;
 		}
 
@@ -128,7 +129,7 @@ public class LanternOfParanoiaItem extends ToggleableItem {
 			return false;
 		}
 
-		for (String torchRegistryName : Settings.COMMON.items.lanternOfParanoia.torches.get()) {
+		for (String torchRegistryName : Config.COMMON.items.lanternOfParanoia.torches.get()) {
 			if (getTorchBlock(torchRegistryName).map(torch -> tryToPlaceTorchBlock(stack, pos, player, world, torch)).orElse(false)) {
 				return true;
 			}
@@ -177,7 +178,11 @@ public class LanternOfParanoiaItem extends ToggleableItem {
 	}
 
 	private Optional<Block> getTorchBlock(String registryName) {
-		return Optional.ofNullable(TORCH_BLOCKS.computeIfAbsent(registryName, rn -> ForgeRegistries.BLOCKS.getValue(new ResourceLocation(rn))));
+		Block block = BuiltInRegistries.BLOCK.get(new ResourceLocation(registryName));
+		if (block == Blocks.AIR) {
+			return Optional.empty();
+		}
+		return Optional.of(TORCH_BLOCKS.computeIfAbsent(registryName, rn -> BuiltInRegistries.BLOCK.get(new ResourceLocation(rn))));
 	}
 
 	@Nullable

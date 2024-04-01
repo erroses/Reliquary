@@ -1,20 +1,20 @@
 package reliquary.crafting;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.SpawnEggItem;
-import net.minecraftforge.common.ForgeSpawnEggItem;
-import net.minecraftforge.registries.ForgeRegistries;
 import reliquary.init.ModItems;
 import reliquary.items.MobCharmFragmentItem;
 
 import java.util.Optional;
 
 public class FragmentRecipeHelper {
-	private FragmentRecipeHelper() {}
+	private FragmentRecipeHelper() {
+	}
 
 	public static final Item FALL_BACK_SPAWN_EGG = Items.CHICKEN_SPAWN_EGG;
 
@@ -49,7 +49,7 @@ public class FragmentRecipeHelper {
 	}
 
 	public static ItemStack getSpawnEggStack(String regName) {
-		SpawnEggItem spawnEggItem = ForgeSpawnEggItem.fromEntityType(ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(regName)));
+		SpawnEggItem spawnEggItem = SpawnEggItem.byId(BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(regName)));
 		return new ItemStack(spawnEggItem == null ? FALL_BACK_SPAWN_EGG : spawnEggItem);
 	}
 }

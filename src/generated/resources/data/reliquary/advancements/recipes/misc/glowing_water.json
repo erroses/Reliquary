@@ -20,14 +20,13 @@
   },
   "requirements": [
     [
-      "has_nether_wart",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_nether_wart"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:glowing_water"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

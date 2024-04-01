@@ -10,14 +10,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.items.IItemHandler;
 import reliquary.api.IPedestal;
 import reliquary.api.IPedestalActionItem;
 import reliquary.api.IPedestalRedstoneItem;
@@ -28,10 +26,8 @@ import reliquary.items.util.FilteredItemStackHandler;
 import reliquary.pedestal.PedestalRegistry;
 import reliquary.util.CombinedItemHandler;
 import reliquary.util.InventoryHelper;
-import reliquary.util.WorldHelper;
 import reliquary.util.XRFakePlayerFactory;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +44,7 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 	@Nullable
 	private IItemHandler itemHandler = null;
 	@Nullable
-	private LazyOptional<IItemHandler> combinedHandler = null;
+	private IItemHandler combinedHandler = null;
 	private ItemStack fluidContainer = ItemStack.EMPTY;
 	private boolean switchedOn = false;
 	private final List<Long> onSwitches = new ArrayList<>();
@@ -121,27 +117,26 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 		super.onLoad();
 	}
 
-	@Nonnull
 	@Override
-	public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-		if (cap == ForgeCapabilities.FLUID_HANDLER) {
-			if (pedestalFluidHandler == null) {
-				pedestalFluidHandler = new PedestalFluidHandler(this);
-			}
-			return ForgeCapabilities.FLUID_HANDLER.orEmpty(cap, LazyOptional.of(() -> pedestalFluidHandler));
-		} else if (cap == ForgeCapabilities.ITEM_HANDLER && itemHandler != null) {
-			if (combinedHandler == null) {
-				combinedHandler = LazyOptional.of(() -> super.getCapability(ForgeCapabilities.ITEM_HANDLER, side)
-						.map(superHandler -> (IItemHandler) new CombinedItemHandler(superHandler, itemHandler))
-						.orElse(itemHandler));
-			}
-			return combinedHandler.cast();
+	public IItemHandler getItemHandler() {
+		IItemHandler superInventory = super.getItemHandler();
+		if (itemHandler == null) {
+			return superInventory;
 		}
-
-		return super.getCapability(cap, side);
+		if (combinedHandler == null) {
+			combinedHandler = new CombinedItemHandler(superInventory, itemHandler);
+		}
+		return combinedHandler;
 	}
 
-	private void executeOnActionItem(Consumer<IPedestalActionItem> execute) {
+	public IFluidHandler getFluidHandler() {
+		if (pedestalFluidHandler == null) {
+			pedestalFluidHandler = new PedestalFluidHandler(this);
+		}
+		return pedestalFluidHandler;
+	}
+
+	public void executeOnActionItem(Consumer<IPedestalActionItem> execute) {
 		if (actionItem == null) {
 			return;
 		}
@@ -162,7 +157,10 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 			return;
 		}
 
-		item.getCapability(ForgeCapabilities.ITEM_HANDLER, null).ifPresent(ih -> itemHandler = ih);
+		IItemHandler ih = item.getCapability(Capabilities.ItemHandler.ITEM);
+		if (ih != null) {
+			itemHandler = ih;
+		}
 
 		if (item.getItem() instanceof IPedestalActionItem pedestalActionItem) {
 			tickable = true;
@@ -181,8 +179,11 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 			});
 		}
 
-		item.getCapability(ForgeCapabilities.FLUID_HANDLER, null).ifPresent(fh -> fluidContainer = item);
-		item.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null).ifPresent(fh -> fluidContainer = item);
+
+		IFluidHandlerItem itemFluidHandler = item.getCapability(Capabilities.FluidHandler.ITEM);
+		if (itemFluidHandler != null) {
+			fluidContainer = item;
+		}
 
 		actionCooldown = 0;
 	}
@@ -194,7 +195,7 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 		redstoneItem = null;
 		itemHandler = null;
 		if (combinedHandler != null) {
-			combinedHandler.invalidate();
+			level.invalidateCapabilities(getBlockPos());
 		}
 		combinedHandler = null;
 	}
@@ -245,10 +246,7 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 	public int addToConnectedInventory(Level level, ItemStack stack) {
 		int numberAdded = 0;
 		for (Direction side : Direction.values()) {
-			LazyOptional<IItemHandler> inventory = InventoryHelper.getInventoryAtPos(level, worldPosition.offset(side.getNormal()), side.getOpposite());
-
-			int finalNumberAdded = numberAdded;
-			numberAdded += inventory.map(handler -> InventoryHelper.tryToAddToInventory(stack, handler, stack.getCount() - finalNumberAdded)).orElse(0);
+			numberAdded += InventoryHelper.tryToAddToInventoryAtPos(stack, level, worldPosition.offset(side.getNormal()), side.getOpposite(), stack.getCount() - numberAdded);
 			if (numberAdded >= stack.getCount()) {
 				break;
 			}
@@ -399,7 +397,10 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 	}
 
 	private void addIfTank(List<IFluidHandler> adjacentTanks, BlockPos tankPos, Direction tankDirection) {
-		WorldHelper.getBlockEntity(level, tankPos).ifPresent(te -> te.getCapability(ForgeCapabilities.FLUID_HANDLER, tankDirection).ifPresent(adjacentTanks::add));
+		IFluidHandler fh = level.getCapability(Capabilities.FluidHandler.BLOCK, tankPos, tankDirection);
+		if (fh != null) {
+			adjacentTanks.add(fh);
+		}
 	}
 
 	public void removeSpecialItems(Level level) {
@@ -490,13 +491,5 @@ public class PedestalBlockEntity extends PassivePedestalBlockEntity implements I
 
 	public boolean isEnabled() {
 		return getBlockState().getValue(PedestalBlock.ENABLED);
-	}
-
-	@Override
-	public AABB getRenderBoundingBox() {
-		BlockPos pos = getBlockPos();
-		AABB aabb = new AABB(pos.offset(-1, 0, -1), pos.offset(1, 1, 1));
-		executeOnActionItem(ai -> ai.getRenderBoundingBoxOuterPosition().ifPresent(aabb::expandTowards));
-		return aabb;
 	}
 }

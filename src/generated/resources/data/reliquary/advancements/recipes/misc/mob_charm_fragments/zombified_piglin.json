@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_zombie_heart",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_zombie_heart"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_fragments/zombified_piglin"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

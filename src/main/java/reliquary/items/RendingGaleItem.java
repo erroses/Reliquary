@@ -5,19 +5,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LightningBolt;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
@@ -30,28 +24,18 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
-import reliquary.items.util.FilteredItemHandlerProvider;
-import reliquary.items.util.FilteredItemStack;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import reliquary.items.util.FilteredItemStackHandler;
 import reliquary.items.util.IScrollableItem;
-import reliquary.reference.Settings;
-import reliquary.util.LogHelper;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.RegistryHelper;
 import reliquary.util.TooltipBuilder;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
-	private static final String COUNT_TAG = "count";
 	private static final int NO_DAMAGE_ELYTRA_TICKS = 3;
 
 	public RendingGaleItem() {
@@ -64,9 +48,8 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack rendingGale, @Nullable Level world, TooltipBuilder tooltipBuilder) {
-		tooltipBuilder.charge(this, ".tooltip2", getFeatherCount(rendingGale, true) / 100);
+		tooltipBuilder.charge(this, ".tooltip2", getFeatherCount(rendingGale) / 100);
 		tooltipBuilder.description(this, ".tooltip.controls");
 		if (isEnabled(rendingGale)) {
 			tooltipBuilder.absorbActive(Items.FEATHER.getName(new ItemStack(Items.FEATHER)).getString());
@@ -81,27 +64,27 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	private static int getChargeLimit() {
-		return Settings.COMMON.items.rendingGale.chargeLimit.get();
+		return Config.COMMON.items.rendingGale.chargeLimit.get();
 	}
 
 	public static int getChargeCost() {
-		return Settings.COMMON.items.rendingGale.castChargeCost.get();
+		return Config.COMMON.items.rendingGale.castChargeCost.get();
 	}
 
 	private static int getFeathersWorth() {
-		return Settings.COMMON.items.rendingGale.chargeFeatherWorth.get();
+		return Config.COMMON.items.rendingGale.chargeFeatherWorth.get();
 	}
 
 	private static int getBoltChargeCost() {
-		return Settings.COMMON.items.rendingGale.boltChargeCost.get();
+		return Config.COMMON.items.rendingGale.boltChargeCost.get();
 	}
 
 	private static int getBoltTargetRange() {
-		return Settings.COMMON.items.rendingGale.blockTargetRange.get();
+		return Config.COMMON.items.rendingGale.blockTargetRange.get();
 	}
 
 	private static int getRadialPushRadius() {
-		return Settings.COMMON.items.rendingGale.pushPullRadius.get();
+		return Config.COMMON.items.rendingGale.pushPullRadius.get();
 	}
 
 	private void attemptFlight(LivingEntity entityLiving) {
@@ -123,19 +106,7 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 		player.fallDistance = 0.0F;
 
 		if (player.isFallFlying()) {
-			preventElytraDamage(player);
-		}
-	}
-
-	private static final Field TICKS_ELYTRA_FLYING = ObfuscationReflectionHelper.findField(LivingEntity.class, "f_20937_");
-
-	@SuppressWarnings("java:S3011") //the reflection accessibility bypass here is the only way one can set the value
-	private static void preventElytraDamage(Player player) {
-		try {
-			TICKS_ELYTRA_FLYING.set(player, NO_DAMAGE_ELYTRA_TICKS);
-		}
-		catch (IllegalAccessException e) {
-			LogHelper.error("Error setting ticksElytraFlying on player ", e);
+			player.fallFlyTicks = NO_DAMAGE_ELYTRA_TICKS;
 		}
 	}
 
@@ -148,7 +119,7 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 		if (isEnabled(rendingGale)) {
 			int currentFeatherCharge = getFeatherCount(rendingGale);
 			consumeAndCharge(player, getChargeLimit() - currentFeatherCharge, getFeathersWorth(), Items.FEATHER, 16,
-					chargeToAdd -> setFeatherCount(rendingGale, currentFeatherCharge + chargeToAdd, !player.isUsingItem()));
+					chargeToAdd -> setFeatherCount(rendingGale, currentFeatherCharge + chargeToAdd));
 		}
 	}
 
@@ -179,14 +150,6 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-		ArrayList<FilteredItemStack> filteredStacks = new ArrayList<>();
-		filteredStacks.add(new FilteredItemStack(Items.FEATHER, Settings.COMMON.items.rendingGale.chargeLimit.get(),
-				Settings.COMMON.items.rendingGale.chargeFeatherWorth.get(), false));
-		return new FilteredItemHandlerProvider(filteredStacks);
-	}
-
-	@Override
 	public int getUseDuration(ItemStack par1ItemStack) {
 		return 6000;
 	}
@@ -213,7 +176,7 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 			return;
 		}
 
-		if (getFeatherCount(rendingGale, player.level().isClientSide) <= 0) {
+		if (getFeatherCount(rendingGale) <= 0) {
 			player.releaseUsingItem();
 			return;
 		}
@@ -232,7 +195,7 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 				doRadialPush(player.level(), player.getX(), player.getY(), player.getZ(), player, true);
 			}
 			if (!player.level().isClientSide) {
-				setFeatherCount(rendingGale, Math.max(0, getFeatherCount(rendingGale) - getChargeCost()), false);
+				setFeatherCount(rendingGale, Math.max(0, getFeatherCount(rendingGale) - getChargeCost()));
 			}
 		}
 	}
@@ -251,18 +214,10 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 				if (bolt != null) {
 					bolt.moveTo(pos.getX(), pos.getY(), pos.getZ());
 					player.level().addFreshEntity(bolt);
-					setFeatherCount(rendingGale, Math.max(0, getFeatherCount(rendingGale) - (getBoltChargeCost())), false);
+					setFeatherCount(rendingGale, Math.max(0, getFeatherCount(rendingGale) - (getBoltChargeCost())));
 				}
 			}
 		}
-	}
-
-	@Override
-	public void releaseUsing(ItemStack rendingGale, Level world, LivingEntity entityLiving, int timeLeft) {
-		if (world.isClientSide) {
-			return;
-		}
-		NBTHelper.putInt(COUNT_TAG, rendingGale, getFeatherCount(rendingGale));
 	}
 
 	public boolean hasFlightCharge(ItemStack stack) {
@@ -270,26 +225,17 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	public int getFeatherCount(ItemStack rendingGale) {
-		return getFeatherCount(rendingGale, false);
-	}
-
-	private int getFeatherCount(ItemStack rendingGale, boolean isClient) {
-		if (isClient) {
-			return NBTHelper.getInt(COUNT_TAG, rendingGale);
+		if (rendingGale.getCapability(Capabilities.ItemHandler.ITEM) instanceof FilteredItemStackHandler filteredItemStackHandler) {
+			return filteredItemStackHandler.getTotalAmount(0);
 		}
 
-		return rendingGale.getCapability(ForgeCapabilities.ITEM_HANDLER, null)
-				.filter(FilteredItemStackHandler.class::isInstance).map(handler -> ((FilteredItemStackHandler) handler).getTotalAmount(0)).orElse(0);
+		return 0;
 	}
 
-	public void setFeatherCount(ItemStack stack, int featherCount, boolean updateNBT) {
-		stack.getCapability(ForgeCapabilities.ITEM_HANDLER, null).filter(FilteredItemStackHandler.class::isInstance)
-				.ifPresent(handler -> {
-					((FilteredItemStackHandler) handler).setTotalCount(0, featherCount);
-					if (updateNBT) {
-						NBTHelper.putInt(COUNT_TAG, stack, featherCount);
-					}
-				});
+	public void setFeatherCount(ItemStack stack, int featherCount) {
+		if (stack.getCapability(Capabilities.ItemHandler.ITEM) instanceof FilteredItemStackHandler filteredItemStackHandler) {
+			filteredItemStackHandler.setTotalCount(0, featherCount);
+		}
 	}
 
 	public void doRadialPush(Level world, double posX, double posY, double posZ, @Nullable Player player, boolean pull) {
@@ -331,15 +277,15 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 
 	private boolean isBlacklistedEntity(Entity entity) {
 		String entityName = RegistryHelper.getRegistryName(entity).toString();
-		return isBlacklistedLivingEntity(entity, entityName) || Settings.COMMON.items.rendingGale.canPushProjectiles.get() && isBlacklistedProjectile(entity, entityName);
+		return isBlacklistedLivingEntity(entity, entityName) || Config.COMMON.items.rendingGale.canPushProjectiles.get() && isBlacklistedProjectile(entity, entityName);
 	}
 
 	private boolean isBlacklistedProjectile(Entity entity, String entityName) {
-		return entity instanceof Projectile && Settings.COMMON.items.rendingGale.pushableProjectilesBlacklist.get().contains(entityName);
+		return entity instanceof Projectile && Config.COMMON.items.rendingGale.pushableProjectilesBlacklist.get().contains(entityName);
 	}
 
 	private boolean isBlacklistedLivingEntity(Entity entity, String entityName) {
-		return entity instanceof Mob && Settings.COMMON.items.rendingGale.pushableEntitiesBlacklist.get().contains(entityName);
+		return entity instanceof Mob && Config.COMMON.items.rendingGale.pushableEntitiesBlacklist.get().contains(entityName);
 	}
 
 	private float getDistanceToEntity(double posX, double posY, double posZ, Entity entityIn) {
@@ -387,7 +333,7 @@ public class RendingGaleItem extends ToggleableItem implements IScrollableItem {
 	}
 
 	public int getFeatherCountClient(ItemStack rendingGale, Player player) {
-		int featherCount = getFeatherCount(rendingGale, true);
+		int featherCount = getFeatherCount(rendingGale);
 		Mode mode = getMode(rendingGale);
 		int ticksInUse = getUseDuration(rendingGale) - player.getUseItemRemainingTicks();
 		if (player.isUsingItem()) {

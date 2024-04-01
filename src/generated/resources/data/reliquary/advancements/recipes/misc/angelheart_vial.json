@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_fertile_essence",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_fertile_essence"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:angelheart_vial"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

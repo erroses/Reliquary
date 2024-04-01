@@ -3,6 +3,7 @@ package reliquary.items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
@@ -13,10 +14,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.RandHelper;
 import reliquary.util.TooltipBuilder;
@@ -32,7 +30,6 @@ public class DestructionCatalystItem extends ToggleableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack catalyst, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		tooltipBuilder.charge(this, ".tooltip2", NBTHelper.getInt(GUNPOWDER_TAG, catalyst));
 
@@ -82,18 +79,18 @@ public class DestructionCatalystItem extends ToggleableItem {
 	}
 
 	private int getExplosionRadius() {
-		return Settings.COMMON.items.destructionCatalyst.explosionRadius.get();
+		return Config.COMMON.items.destructionCatalyst.explosionRadius.get();
 	}
 
 	private boolean perfectCube() {
-		return Settings.COMMON.items.destructionCatalyst.perfectCube.get();
+		return Config.COMMON.items.destructionCatalyst.perfectCube.get();
 	}
 
 	private boolean doExplosion(Level world, BlockPos pos, Direction direction) {
 		boolean destroyedSomething = false;
 		boolean playOnce = true;
 		BlockPos origin = pos;
-		if (Boolean.FALSE.equals(Settings.COMMON.items.destructionCatalyst.centeredExplosion.get())) {
+		if (Boolean.FALSE.equals(Config.COMMON.items.destructionCatalyst.centeredExplosion.get())) {
 			origin = pos.relative(direction.getOpposite(), getExplosionRadius());
 		}
 		for (BlockPos target : BlockPos.betweenClosed(origin.offset(-getExplosionRadius(), -getExplosionRadius(), -getExplosionRadius()),
@@ -106,7 +103,7 @@ public class DestructionCatalystItem extends ToggleableItem {
 			}
 
 			//noinspection ConstantConditions
-			if (isBreakable(ForgeRegistries.BLOCKS.getKey(world.getBlockState(target).getBlock()).toString())) {
+			if (isBreakable(BuiltInRegistries.BLOCK.getKey(world.getBlockState(target).getBlock()).toString())) {
 				world.setBlockAndUpdate(target, Blocks.AIR.defaultBlockState());
 				if (world.random.nextInt(2) == 0) {
 					world.addParticle(ParticleTypes.EXPLOSION, target.getX() + (world.random.nextFloat() - 0.5F), target.getY() + (world.random.nextFloat() - 0.5F), target.getZ() + (world.random.nextFloat() - 0.5F), 0.0D, 0.0D, 0.0D);
@@ -122,18 +119,18 @@ public class DestructionCatalystItem extends ToggleableItem {
 	}
 
 	private boolean isBreakable(String id) {
-		return Settings.COMMON.items.destructionCatalyst.mundaneBlocks.get().contains(id);
+		return Config.COMMON.items.destructionCatalyst.mundaneBlocks.get().contains(id);
 	}
 
 	private int gunpowderCost() {
-		return Settings.COMMON.items.destructionCatalyst.gunpowderCost.get();
+		return Config.COMMON.items.destructionCatalyst.gunpowderCost.get();
 	}
 
 	private int gunpowderWorth() {
-		return Settings.COMMON.items.destructionCatalyst.gunpowderWorth.get();
+		return Config.COMMON.items.destructionCatalyst.gunpowderWorth.get();
 	}
 
 	private int gunpowderLimit() {
-		return Settings.COMMON.items.destructionCatalyst.gunpowderLimit.get();
+		return Config.COMMON.items.destructionCatalyst.gunpowderLimit.get();
 	}
 }

@@ -1,8 +1,8 @@
 package reliquary.util;
 
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.wrapper.EmptyHandler;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.EmptyHandler;
 import org.jetbrains.annotations.NotNull;
 
 // combines multiple IItemHandler into one interface

@@ -7,8 +7,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import reliquary.util.TooltipBuilder;
 
 import javax.annotation.Nullable;
@@ -46,7 +44,6 @@ public class ItemBase extends Item implements ICreativeTabItemGenerator {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
 		TooltipBuilder tooltipBuilder = TooltipBuilder.of(tooltip).itemTooltip(this);
 
@@ -63,7 +60,6 @@ public class ItemBase extends Item implements ICreativeTabItemGenerator {
 		return false;
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack stack, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		//overriden in child classes
 	}

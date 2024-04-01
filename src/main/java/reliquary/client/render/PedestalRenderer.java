@@ -6,9 +6,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import reliquary.blocks.tile.PedestalBlockEntity;
 import reliquary.client.registry.PedestalClientRegistry;
 
@@ -27,5 +29,13 @@ public class PedestalRenderer implements BlockEntityRenderer<PedestalBlockEntity
 			matrixStack.popPose();
 			PedestalClientRegistry.getItemRenderer(stack).ifPresent(extraRenderer -> extraRenderer.doRender(te, partialTicks, matrixStack, buffer, packedLight, packedOverlay));
 		}
+	}
+
+	@Override
+	public AABB getRenderBoundingBox(PedestalBlockEntity blockEntity) {
+		BlockPos pos = blockEntity.getBlockPos();
+		AABB aabb = new AABB(pos.getX() - 1, pos.getY(), pos.getZ() - 1, pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+		blockEntity.executeOnActionItem(ai -> ai.getRenderBoundingBoxOuterPosition().ifPresent(aabb::expandTowards));
+		return aabb;
 	}
 }

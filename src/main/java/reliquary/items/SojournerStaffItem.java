@@ -3,6 +3,7 @@ package reliquary.items;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
@@ -12,11 +13,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -25,17 +22,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.registries.ForgeRegistries;
 import reliquary.items.util.IScrollableItem;
-import reliquary.reference.Settings;
-import reliquary.util.InventoryHelper;
-import reliquary.util.NBTHelper;
-import reliquary.util.NoPlayerBlockItemUseContext;
-import reliquary.util.RegistryHelper;
-import reliquary.util.TooltipBuilder;
+import reliquary.reference.Config;
+import reliquary.util.*;
 
 import javax.annotation.Nullable;
 import java.util.StringJoiner;
@@ -77,8 +66,8 @@ public class SojournerStaffItem extends ToggleableItem implements IScrollableIte
 	}
 
 	private void scanForMatchingTorchesToFillInternalStorage(ItemStack stack, Player player) {
-		for (String torch : Settings.COMMON.items.sojournerStaff.torches.get()) {
-			consumeAndCharge(player, Settings.COMMON.items.sojournerStaff.maxCapacityPerItemType.get() - getInternalStorageItemCount(stack, torch), 1, ist -> RegistryHelper.getItemRegistryName(ist.getItem()).equals(torch), 16,
+		for (String torch : Config.COMMON.items.sojournerStaff.torches.get()) {
+			consumeAndCharge(player, Config.COMMON.items.sojournerStaff.maxCapacityPerItemType.get() - getInternalStorageItemCount(stack, torch), 1, ist -> RegistryHelper.getItemRegistryName(ist.getItem()).equals(torch), 16,
 					chargeToAdd -> addItemToInternalStorage(stack, torch, chargeToAdd));
 		}
 	}
@@ -129,7 +118,6 @@ public class SojournerStaffItem extends ToggleableItem implements IScrollableIte
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack staff, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		StringJoiner joiner = new StringJoiner(";");
 		iterateItems(staff, tag -> {
@@ -156,7 +144,7 @@ public class SojournerStaffItem extends ToggleableItem implements IScrollableIte
 	}
 
 	private static ItemStack getItem(CompoundTag tagItemData) {
-		return new ItemStack(ForgeRegistries.ITEMS.getValue(new ResourceLocation(tagItemData.getString(ITEM_NAME_TAG))));
+		return new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(tagItemData.getString(ITEM_NAME_TAG))));
 	}
 
 	@Override
@@ -200,7 +188,7 @@ public class SojournerStaffItem extends ToggleableItem implements IScrollableIte
 	private boolean removeTorches(Player player, ItemStack staff, ItemStack torch, BlockPos placeBlockAt) {
 		if (!player.isCreative()) {
 			int distance = (int) player.getEyePosition(1).distanceTo(new Vec3(placeBlockAt.getX(), placeBlockAt.getY(), placeBlockAt.getZ()));
-			int cost = 1 + distance / Settings.COMMON.items.sojournerStaff.tilePerCostMultiplier.get();
+			int cost = 1 + distance / Config.COMMON.items.sojournerStaff.tilePerCostMultiplier.get();
 
 			Item torchItem = torch.getItem();
 			boolean result = removeItemFromInternalStorage(staff, torchItem, cost, false, player);
@@ -225,10 +213,8 @@ public class SojournerStaffItem extends ToggleableItem implements IScrollableIte
 				ItemStack torch = getItem(torchTag);
 				int count = torchTag.getInt(QUANTITY_TAG);
 				torch.setCount(Math.min(count, torch.getMaxStackSize()));
-				player.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).ifPresent(playerInventory -> {
-					int inserted = InventoryHelper.insertIntoInventory(torch, playerInventory);
-					removeItemFromInternalStorage(staff, torch.getItem(), inserted, false, player);
-				});
+				int inserted = InventoryHelper.insertIntoInventory(torch, InventoryHelper.getItemHandlerFrom(player));
+				removeItemFromInternalStorage(staff, torch.getItem(), inserted, false, player);
 			}
 		}
 		return super.use(world, player, hand);
@@ -244,7 +230,7 @@ public class SojournerStaffItem extends ToggleableItem implements IScrollableIte
 		float f5 = Mth.sin(-f * ((float) Math.PI / 180F));
 		float f6 = f3 * f4;
 		float f7 = f2 * f4;
-		double d0 = Settings.COMMON.items.sojournerStaff.maxRange.get();
+		double d0 = Config.COMMON.items.sojournerStaff.maxRange.get();
 		Vec3 vec3d1 = vec3d.add(f6 * d0, f5 * d0, f7 * d0);
 		return worldIn.clip(new ClipContext(vec3d, vec3d1, ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, player));
 	}

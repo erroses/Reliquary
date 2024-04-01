@@ -9,8 +9,8 @@ import net.minecraft.world.phys.Vec2;
 import org.jetbrains.annotations.Nullable;
 import reliquary.blocks.AlkahestryAltarBlock;
 import reliquary.blocks.tile.AlkahestryAltarBlockEntity;
+import reliquary.reference.Config;
 import reliquary.reference.Reference;
-import reliquary.reference.Settings;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -33,7 +33,7 @@ public class DataProviderAltar implements IBlockComponentProvider, IServerDataPr
 
 	@Override
 	public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig pluginConfig) {
-		if (Boolean.TRUE.equals(Settings.CLIENT.wailaShiftForInfo.get()) && !accessor.getPlayer().isCrouching()) {
+		if (Boolean.TRUE.equals(Config.CLIENT.wailaShiftForInfo.get()) && !accessor.getPlayer().isCrouching()) {
 			tooltip.add(Component.translatable("waila.reliquary.shift_for_more").withStyle(ChatFormatting.ITALIC));
 			return;
 		}
@@ -48,7 +48,7 @@ public class DataProviderAltar implements IBlockComponentProvider, IServerDataPr
 
 			Vec2 delta = new Vec2(0, -4);
 			IElement redstoneIcon = helper.item(Items.REDSTONE.getDefaultInstance(), JadeHelper.ITEM_ICON_SCALE);
-			IElement requirementText = helper.text(Component.literal(String.format("%d / %d", altar.getRedstoneCount(), Settings.COMMON.blocks.altar.redstoneCost.get())));
+			IElement requirementText = helper.text(Component.literal(String.format("%d / %d", altar.getRedstoneCount(), Config.COMMON.blocks.altar.redstoneCost.get())));
 			redstoneIcon.size(redstoneIcon.getSize().add(delta)).translate(delta);
 			requirementText.size(requirementText.getSize().add(delta)).translate(delta.add(new Vec2(0, (redstoneIcon.getSize().y - requirementText.getSize().y) / 2)));
 

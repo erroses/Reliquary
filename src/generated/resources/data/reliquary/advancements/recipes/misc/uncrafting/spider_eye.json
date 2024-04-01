@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_chelicerae",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_chelicerae"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/spider_eye"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

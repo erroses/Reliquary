@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_slime_pearl",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_slime_pearl"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_fragments/slime"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

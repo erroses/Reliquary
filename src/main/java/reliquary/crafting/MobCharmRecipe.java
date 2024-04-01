@@ -1,9 +1,8 @@
 package reliquary.crafting;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -13,7 +12,6 @@ import net.minecraft.world.level.Level;
 import reliquary.init.ModItems;
 import reliquary.items.MobCharmItem;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,7 +21,7 @@ public class MobCharmRecipe extends ShapedRecipe {
 	private final ShapedRecipe compose;
 
 	public MobCharmRecipe(ShapedRecipe compose) {
-		super(compose.getId(), compose.getGroup(), CraftingBookCategory.MISC, compose.getRecipeWidth(), compose.getRecipeHeight(), compose.getIngredients(), compose.result);
+		super(compose.getGroup(), CraftingBookCategory.MISC, compose.pattern, compose.result);
 		this.compose = compose;
 		REGISTERED_RECIPES.add(this);
 	}
@@ -55,16 +53,16 @@ public class MobCharmRecipe extends ShapedRecipe {
 	}
 
 	public static class Serializer implements RecipeSerializer<MobCharmRecipe> {
+		private final Codec<MobCharmRecipe> codec = RecipeSerializer.SHAPED_RECIPE.codec().xmap(MobCharmRecipe::new, recipe -> recipe.compose);
+
 		@Override
-		public MobCharmRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-			return new MobCharmRecipe(RecipeSerializer.SHAPED_RECIPE.fromJson(recipeId, json));
+		public Codec<MobCharmRecipe> codec() {
+			return codec;
 		}
 
-		@Nullable
 		@Override
-		public MobCharmRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
-			//noinspection ConstantConditions - shaped recipe serializer always returns an instance of recipe despite RecipeSerializer's null allowing contract
-			return new MobCharmRecipe(RecipeSerializer.SHAPED_RECIPE.fromNetwork(recipeId, buffer));
+		public MobCharmRecipe fromNetwork(FriendlyByteBuf buffer) {
+			return new MobCharmRecipe(RecipeSerializer.SHAPED_RECIPE.fromNetwork(buffer));
 		}
 
 		@Override

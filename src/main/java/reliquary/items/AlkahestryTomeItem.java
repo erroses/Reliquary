@@ -12,14 +12,11 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
 import reliquary.common.gui.AlkahestTomeMenu;
 import reliquary.crafting.AlkahestryChargingRecipe;
 import reliquary.crafting.AlkahestryRecipeRegistry;
 import reliquary.init.ModSounds;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.TooltipBuilder;
 
@@ -27,7 +24,7 @@ import javax.annotation.Nullable;
 
 public class AlkahestryTomeItem extends ToggleableItem {
 	public AlkahestryTomeItem() {
-		super(new Properties().setNoRepair().rarity(Rarity.EPIC).stacksTo(1), Settings.COMMON.disable.disableAlkahestry);
+		super(new Properties().setNoRepair().rarity(Rarity.EPIC).stacksTo(1), Config.COMMON.disable.disableAlkahestry);
 	}
 
 	@Override
@@ -60,7 +57,7 @@ public class AlkahestryTomeItem extends ToggleableItem {
 
 		player.playSound(ModSounds.BOOK.get(), 1.0f, 1.0f);
 		if (!world.isClientSide && player instanceof ServerPlayer serverPlayer) {
-			NetworkHooks.openScreen(serverPlayer, new SimpleMenuProvider((w, p, pl) -> new AlkahestTomeMenu(w), stack.getHoverName()));
+			serverPlayer.openMenu(new SimpleMenuProvider((w, p, pl) -> new AlkahestTomeMenu(w), stack.getHoverName()));
 		}
 		return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
 	}
@@ -82,7 +79,6 @@ public class AlkahestryTomeItem extends ToggleableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack tome, @Nullable Level level, TooltipBuilder tooltipBuilder) {
 		if (level == null) {
 			return;
@@ -104,7 +100,7 @@ public class AlkahestryTomeItem extends ToggleableItem {
 	}
 
 	public static int getChargeLimit() {
-		return Settings.COMMON.items.alkahestryTome.chargeLimit.get();
+		return Config.getOrDefault(Config.COMMON.items.alkahestryTome.chargeLimit, Config.COMMON_SPEC);
 	}
 
 	public static ItemStack setCharge(ItemStack tome, int charge) {

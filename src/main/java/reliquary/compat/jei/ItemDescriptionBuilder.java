@@ -3,12 +3,12 @@ package reliquary.compat.jei;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import reliquary.init.ModBlocks;
 import reliquary.init.ModItems;
 import reliquary.items.ICreativeTabItemGenerator;
@@ -174,10 +174,7 @@ public class ItemDescriptionBuilder {
 		NonNullList<ItemStack> subItems = NonNullList.create();
 		item.addCreativeTabItems(subItems::add);
 		for (ItemStack subItem : subItems) {
-			EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(getEntityRegistryName.apply(subItem));
-			if (entityType == null) {
-				continue;
-			}
+			EntityType<?> entityType = BuiltInRegistries.ENTITY_TYPE.get(getEntityRegistryName.apply(subItem));
 			String path = RegistryHelper.getRegistryName(item).getPath();
 			String itemDescriptionKey = String.format("jei.%s.description.%s", Reference.MOD_ID, path.replace('/', '.'));
 			String entityName = entityType.getDescription().getString();

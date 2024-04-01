@@ -2,15 +2,9 @@ package reliquary.entities;
 
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ItemSupplier;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
@@ -18,22 +12,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
 import reliquary.init.ModEntities;
 import reliquary.init.ModItems;
-import reliquary.network.PacketFXThrownPotionImpact;
 import reliquary.network.PacketHandler;
+import reliquary.network.SpawnThrownPotionImpactParticlesPacket;
 import reliquary.reference.Colors;
 
 import java.util.List;
 
-@OnlyIn(
-		value = Dist.CLIENT,
-		_interface = ItemSupplier.class
-)
 public class GlowingWaterEntity extends ThrowableProjectile implements ItemSupplier {
 	public GlowingWaterEntity(EntityType<GlowingWaterEntity> entityType, Level world) {
 		super(entityType, world);
@@ -94,8 +80,7 @@ public class GlowingWaterEntity extends ThrowableProjectile implements ItemSuppl
 		}
 
 		level().playSound(null, blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.NEUTRAL, 1.0F, level().random.nextFloat() * 0.1F + 0.9F);
-		PacketHandler.sendToAllAround(new PacketFXThrownPotionImpact(Colors.get(Colors.BLUE), getX(), getY(), getZ()), new PacketDistributor.TargetPoint(getX(), getY(), getZ(), 32.0D, level().dimension()));
-
+		PacketHandler.sendToAllNear(this, new SpawnThrownPotionImpactParticlesPacket(Colors.get(Colors.BLUE), getX(), getY(), getZ()), 32.0D);
 	}
 
 	@Override
@@ -106,10 +91,5 @@ public class GlowingWaterEntity extends ThrowableProjectile implements ItemSuppl
 	@Override
 	public ItemStack getItem() {
 		return new ItemStack(ModItems.GLOWING_WATER.get());
-	}
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 }

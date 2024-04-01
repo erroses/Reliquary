@@ -2,8 +2,6 @@ package reliquary.entities.potion;
 
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -19,20 +17,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
-import net.minecraftforge.network.PacketDistributor;
-import reliquary.network.PacketFXThrownPotionImpact;
 import reliquary.network.PacketHandler;
+import reliquary.network.SpawnThrownPotionImpactParticlesPacket;
 import reliquary.util.LogHelper;
 
 import java.util.List;
 
-@OnlyIn(
-		value = Dist.CLIENT,
-		_interface = ItemSupplier.class
-)
 public abstract class ThrownPotionEntity extends ThrowableProjectile implements ItemSupplier {
 	private static final EntityDataAccessor<ItemStack> ITEM = SynchedEntityData.defineId(ThrownPotionEntity.class, EntityDataSerializers.ITEM_STACK);
 
@@ -95,7 +85,7 @@ public abstract class ThrownPotionEntity extends ThrowableProjectile implements 
 
 		level().playSound(null, blockPosition(), SoundEvents.GLASS_BREAK, SoundSource.BLOCKS, 1.0F, level().random.nextFloat() * 0.1F + 0.9F);
 
-		PacketHandler.sendToAllAround(new PacketFXThrownPotionImpact(getColor(), getX(), getY(), getZ()), new PacketDistributor.TargetPoint(getX(), getY(), getZ(), 32D, level().dimension()));
+		PacketHandler.sendToAllNear(this, new SpawnThrownPotionImpactParticlesPacket(getColor(), getX(), getY(), getZ()), 32D);
 	}
 
 	// this gets called inside the on-impact method on EVERY living entity
@@ -121,10 +111,5 @@ public abstract class ThrownPotionEntity extends ThrowableProjectile implements 
 		} else {
 			return stack;
 		}
-	}
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 }

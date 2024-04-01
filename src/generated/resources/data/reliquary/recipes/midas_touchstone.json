@@ -27,9 +27,10 @@
       "item": "reliquary:catalyzing_gland"
     },
     {
-      "type": "forge:nbt",
-      "count": 1,
-      "item": "reliquary:void_tear"
+      "type": "neoforge:nbt",
+      "item": "reliquary:void_tear",
+      "strict": true,
+      "tag": "{}"
     }
   ],
   "result": {

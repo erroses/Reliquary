@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -12,21 +11,16 @@ import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.NetherWartBlock;
-import net.minecraft.world.level.block.SweetBerryBushBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.IPlantable;
-import net.minecraftforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.IPlantable;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import reliquary.api.IPedestal;
 import reliquary.api.IPedestalActionItemWrapper;
 import reliquary.blocks.FertileLilyPadBlock;
 import reliquary.init.ModItems;
 import reliquary.items.HarvestRodItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.ItemHelper;
 
 import java.util.ArrayDeque;
@@ -59,9 +53,9 @@ public class PedestalHarvestRodWrapper implements IPedestalActionItemWrapper {
 	@Override
 	public void update(ItemStack stack, Level level, IPedestal pedestal) {
 		BlockPos pos = pedestal.getBlockPosition();
-		int cooldown = Settings.COMMON.items.harvestRod.pedestalCooldown.get();
+		int cooldown = Config.COMMON.items.harvestRod.pedestalCooldown.get();
 		pedestal.getFakePlayer().ifPresent(fakePlayer -> {
-			int range = Settings.COMMON.items.harvestRod.pedestalRange.get();
+			int range = Config.COMMON.items.harvestRod.pedestalRange.get();
 
 			hoeLand(level, fakePlayer, pos, range);
 
@@ -77,9 +71,7 @@ public class PedestalHarvestRodWrapper implements IPedestalActionItemWrapper {
 
 	@Override
 	public void onRemoved(ItemStack stack, Level level, IPedestal pedestal) {
-		if (!level.isClientSide) {
-			harvestRod.updateContainedStacks(stack);
-		}
+		//noop
 	}
 
 	@Override
@@ -182,8 +174,8 @@ public class PedestalHarvestRodWrapper implements IPedestalActionItemWrapper {
 		fakePlantableStack.setCount(1);
 		player.setItemInHand(InteractionHand.MAIN_HAND, fakePlantableStack);
 
-		if (fakePlantableStack.useOn(ItemHelper.getItemUseContext(pos, player)) == InteractionResult.SUCCESS) {
-			harvestRod.setPlantableQuantityAndGetPlantableStack(stack, idx, harvestRod.getPlantableQuantity(stack, idx) - 1);
+		if (fakePlantableStack.useOn(ItemHelper.getItemUseContext(pos, player)).consumesAction()) {
+			harvestRod.setPlantableQuantity(stack, idx, harvestRod.getPlantableQuantity(stack, idx) - 1);
 		}
 	}
 
@@ -222,7 +214,7 @@ public class PedestalHarvestRodWrapper implements IPedestalActionItemWrapper {
 					Block block = state.getBlock();
 					if (block instanceof IPlantable || block == Blocks.MELON || block == Blocks.PUMPKIN) {
 						if (block instanceof FertileLilyPadBlock || block == Blocks.PUMPKIN_STEM || block == Blocks.MELON_STEM
-								|| block instanceof CropBlock cropBlock && cropBlock.isValidBonemealTarget(world, currentPos, state, false)
+								|| block instanceof CropBlock cropBlock && cropBlock.isValidBonemealTarget(world, currentPos, state)
 								|| block instanceof NetherWartBlock && state.getValue(NetherWartBlock.AGE) < 3
 								|| block instanceof SweetBerryBushBlock && state.getValue(SweetBerryBushBlock.AGE) < 3) {
 							return;
@@ -304,7 +296,7 @@ public class PedestalHarvestRodWrapper implements IPedestalActionItemWrapper {
 				p -> {
 					BlockPos currentPos = p.immutable();
 					BlockState blockState = world.getBlockState(currentPos);
-					if (blockState.getBlock() != Blocks.GRASS_BLOCK && blockState.getBlock() instanceof BonemealableBlock bonemealableBlock && bonemealableBlock.isValidBonemealTarget(world, currentPos, blockState, world.isClientSide)) {
+					if (blockState.getBlock() != Blocks.GRASS_BLOCK && blockState.getBlock() instanceof BonemealableBlock bonemealableBlock && bonemealableBlock.isValidBonemealTarget(world, currentPos, blockState)) {
 						queueToBoneMeal.add(currentPos);
 					}
 				});

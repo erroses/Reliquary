@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_squid_beak",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_squid_beak"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/ink_sac"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

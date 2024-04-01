@@ -25,7 +25,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import reliquary.blocks.tile.ApothecaryMortarBlockEntity;
 import reliquary.init.ModItems;
 import reliquary.items.ICreativeTabItemGenerator;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.InventoryHelper;
 import reliquary.util.WorldHelper;
 
@@ -52,7 +52,7 @@ public class ApothecaryMortarBlock extends Block implements EntityBlock, ICreati
 
 	@Override
 	public void addCreativeTabItems(Consumer<ItemStack> itemConsumer) {
-		if (Boolean.TRUE.equals(Settings.COMMON.disable.disablePotions.get())) {
+		if (Boolean.TRUE.equals(Config.COMMON.disable.disablePotions.get())) {
 			return;
 		}
 		itemConsumer.accept(new ItemStack(this));
@@ -84,7 +84,7 @@ public class ApothecaryMortarBlock extends Block implements EntityBlock, ICreati
 
 		if (heldItem.isEmpty()) {
 			if (player.isCrouching()) {
-				InventoryHelper.getItemHandlerFrom(mortar).ifPresent(itemHandler -> InventoryHelper.tryRemovingLastStack(itemHandler, level, mortar.getBlockPos()));
+				InventoryHelper.executeOnItemHandlerAt(level, pos, state, mortar, itemHandler -> InventoryHelper.tryRemovingLastStack(itemHandler, level, mortar.getBlockPos()));
 				return InteractionResult.SUCCESS;
 			}
 			boolean done = mortar.usePestle(level);
@@ -101,13 +101,13 @@ public class ApothecaryMortarBlock extends Block implements EntityBlock, ICreati
 		ItemStack stackToAdd = heldItem.copy();
 		stackToAdd.setCount(1);
 
-		boolean putItemInSlot = InventoryHelper.getItemHandlerFrom(mortar).map(itemHandler -> {
+		boolean putItemInSlot = InventoryHelper.executeOnItemHandlerAt(level, pos, state, mortar, itemHandler -> {
 			if (InventoryHelper.insertIntoInventory(stackToAdd, itemHandler) == 1) {
 				heldItem.shrink(1);
 				return true;
 			}
 			return false;
-		}).orElse(false);
+		}, false);
 
 		if (!putItemInSlot) {
 			mortar.usePestle(level);

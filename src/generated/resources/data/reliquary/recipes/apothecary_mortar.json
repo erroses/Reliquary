@@ -1,33 +1,25 @@
 {
-  "type": "forge:conditional",
-  "recipes": [
+  "neoforge:conditions": [
     {
-      "conditions": [
-        {
-          "type": "reliquary:potions_enabled"
-        }
-      ],
-      "recipe": {
-        "type": "minecraft:crafting_shaped",
-        "category": "misc",
-        "key": {
-          "G": {
-            "item": "reliquary:catalyzing_gland"
-          },
-          "N": {
-            "tag": "forge:storage_blocks/quartz"
-          }
-        },
-        "pattern": [
-          "GNG",
-          "NGN",
-          "NNN"
-        ],
-        "result": {
-          "item": "reliquary:apothecary_mortar"
-        },
-        "show_notification": true
-      }
+      "type": "reliquary:potions_enabled"
     }
-  ]
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "G": {
+      "item": "reliquary:catalyzing_gland"
+    },
+    "N": {
+      "tag": "forge:storage_blocks/quartz"
+    }
+  },
+  "pattern": [
+    "GNG",
+    "NGN",
+    "NNN"
+  ],
+  "result": {
+    "item": "reliquary:apothecary_mortar"
+  }
 }

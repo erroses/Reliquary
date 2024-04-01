@@ -4,16 +4,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
 import reliquary.init.ModItems;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 public class FluidHandlerInfernalChalice extends FluidHandlerItemStack {
 	private static final String FLUID_STACKS_TAG = "fluidStacks";
 
 	public FluidHandlerInfernalChalice(ItemStack chalice) {
-		super(chalice, Settings.COMMON.items.infernalChalice.fluidLimit.get());
+		super(chalice, Config.COMMON.items.infernalChalice.fluidLimit.get());
 	}
 
 	@Override

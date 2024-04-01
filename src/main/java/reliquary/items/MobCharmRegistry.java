@@ -1,5 +1,6 @@
 package reliquary.items;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -7,22 +8,18 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import reliquary.init.ModItems;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.RegistryHelper;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static reliquary.items.MobCharmDefinition.*;
 
 public class MobCharmRegistry {
-	private MobCharmRegistry() {}
+	private MobCharmRegistry() {
+	}
 
 	private static final Map<String, MobCharmDefinition> REGISTERED_CHARM_DEFINITIONS = new HashMap<>();
 	private static final Map<String, MobCharmDefinition> ENTITY_NAME_CHARM_DEFINITIONS = new HashMap<>();
@@ -72,9 +69,9 @@ public class MobCharmRegistry {
 	}
 
 	public static void registerDynamicCharmDefinitions() {
-		for (EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES) {
+		for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
 			String registryName = RegistryHelper.getRegistryName(entityType).toString();
-			Set<String> blockedEntities = new HashSet<>(Settings.COMMON.items.mobCharm.entityBlockList.get());
+			Set<String> blockedEntities = new HashSet<>(Config.COMMON.items.mobCharm.entityBlockList.get());
 			if (!ENTITY_NAME_CHARM_DEFINITIONS.containsKey(registryName) && entityType.getCategory() == MobCategory.MONSTER && !blockedEntities.contains(registryName)) {
 				registerMobCharmDefinition(new MobCharmDefinition(registryName));
 				DYNAMICALLY_REGISTERED.add(registryName);
@@ -93,7 +90,7 @@ public class MobCharmRegistry {
 			return;
 		}
 
-		double dynamicDropChance = Settings.COMMON.items.mobCharmFragment.dropChance.get() + evt.getLootingLevel() * Settings.COMMON.items.mobCharmFragment.lootingMultiplier.get();
+		double dynamicDropChance = Config.COMMON.items.mobCharmFragment.dropChance.get() + evt.getLootingLevel() * Config.COMMON.items.mobCharmFragment.lootingMultiplier.get();
 
 		if (entity.level().random.nextFloat() < dynamicDropChance) {
 			ItemEntity fragmentItemEntity = new ItemEntity(entity.level(), entity.getX(), entity.getY(), entity.getZ(), ModItems.MOB_CHARM_FRAGMENT.get().getStackFor(regName.toString()));

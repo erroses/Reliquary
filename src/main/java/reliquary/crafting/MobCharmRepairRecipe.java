@@ -2,7 +2,6 @@ package reliquary.crafting;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -12,15 +11,15 @@ import net.minecraft.world.level.Level;
 import reliquary.init.ModItems;
 import reliquary.items.MobCharmDefinition;
 import reliquary.items.MobCharmRegistry;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 import java.util.Optional;
 
 public class MobCharmRepairRecipe extends CustomRecipe {
 	private static final int PER_FRAGMENT_MULTIPLIER = 6;
 
-	public MobCharmRepairRecipe(ResourceLocation registryName, CraftingBookCategory category) {
-		super(registryName, category);
+	public MobCharmRepairRecipe(CraftingBookCategory category) {
+		super(category);
 	}
 
 	@Override
@@ -63,7 +62,7 @@ public class MobCharmRepairRecipe extends CustomRecipe {
 		MobCharmDefinition charmDefinition = cd.get();
 
 		int repairMultiplier = charmDefinition.isDynamicallyCreated() ? PER_FRAGMENT_MULTIPLIER : 1;
-		int durabilityRepaired = Settings.COMMON.items.mobCharm.dropDurabilityRepair.get() * repairMultiplier;
+		int durabilityRepaired = Config.COMMON.items.mobCharm.dropDurabilityRepair.get() * repairMultiplier;
 		return mobCharm.getDamageValue() >= durabilityRepaired * (numberIngredients - 1) && charmDefinition.isRepairItem(finalIngredient);
 	}
 
@@ -89,7 +88,7 @@ public class MobCharmRepairRecipe extends CustomRecipe {
 
 		ItemStack resultingMobCharm = mobCharm.copy();
 
-		resultingMobCharm.setDamageValue(Math.max(resultingMobCharm.getDamageValue() - (Settings.COMMON.items.mobCharm.dropDurabilityRepair.get() * numberIngredients), 0));
+		resultingMobCharm.setDamageValue(Math.max(resultingMobCharm.getDamageValue() - (Config.COMMON.items.mobCharm.dropDurabilityRepair.get() * numberIngredients), 0));
 
 		return resultingMobCharm;
 	}

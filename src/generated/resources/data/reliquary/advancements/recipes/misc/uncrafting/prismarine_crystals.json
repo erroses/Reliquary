@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_guardian_spike",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_guardian_spike"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:uncrafting/prismarine_crystals"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

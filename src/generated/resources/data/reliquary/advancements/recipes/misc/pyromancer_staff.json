@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_infernal_claws",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_infernal_claws"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:pyromancer_staff"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

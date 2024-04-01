@@ -3,8 +3,6 @@ package reliquary.entities;
 import com.google.common.collect.Lists;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -17,9 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
 import reliquary.init.ModEntities;
 import reliquary.init.ModItems;
 import reliquary.util.potions.XRPotionHelper;
@@ -32,15 +27,15 @@ public class XRTippedArrowEntity extends AbstractArrow {
 	private List<MobEffectInstance> effects = Lists.newArrayList();
 
 	public XRTippedArrowEntity(EntityType<XRTippedArrowEntity> entityType, Level world) {
-		super(entityType, world);
+		super(entityType, world, new ItemStack(ModItems.TIPPED_ARROW.get()));
 	}
 
-	public XRTippedArrowEntity(Level world, double x, double y, double z) {
-		super(ModEntities.TIPPED_ARROW.get(), x, y, z, world);
+	public XRTippedArrowEntity(Level world, double x, double y, double z, ItemStack pickupItemStack) {
+		super(ModEntities.TIPPED_ARROW.get(), x, y, z, world, pickupItemStack);
 	}
 
-	public XRTippedArrowEntity(Level world, LivingEntity shooter) {
-		super(ModEntities.TIPPED_ARROW.get(), shooter, world);
+	public XRTippedArrowEntity(Level world, LivingEntity shooter, ItemStack pickupItemStack) {
+		super(ModEntities.TIPPED_ARROW.get(), shooter, world, pickupItemStack);
 	}
 
 	public void setPotionEffect(ItemStack stack) {
@@ -129,7 +124,6 @@ public class XRTippedArrowEntity extends AbstractArrow {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public void handleEntityEvent(byte id) {
 		if (id == 0) {
 			int i = getColor();
@@ -146,10 +140,5 @@ public class XRTippedArrowEntity extends AbstractArrow {
 		} else {
 			super.handleEntityEvent(id);
 		}
-	}
-
-	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 }

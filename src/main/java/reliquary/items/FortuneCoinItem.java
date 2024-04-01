@@ -19,9 +19,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import reliquary.api.IPedestal;
 import reliquary.api.IPedestalActionItem;
 import reliquary.blocks.tile.PedestalBlockEntity;
@@ -29,7 +27,7 @@ import reliquary.init.ModFluids;
 import reliquary.init.ModItems;
 import reliquary.items.util.ICuriosItem;
 import reliquary.pedestal.PedestalRegistry;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.RandHelper;
 import reliquary.util.TooltipBuilder;
@@ -77,7 +75,6 @@ public class FortuneCoinItem extends ItemBase implements IPedestalActionItem, IC
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack stack, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		tooltipBuilder.description(this, ".tooltip2");
 	}
@@ -93,7 +90,6 @@ public class FortuneCoinItem extends ItemBase implements IPedestalActionItem, IC
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public boolean isFoil(ItemStack stack) {
 		return isEnabled(stack);
 	}
@@ -223,11 +219,11 @@ public class FortuneCoinItem extends ItemBase implements IPedestalActionItem, IC
 	}
 
 	private double getLongRangePullDistance() {
-		return Settings.COMMON.items.fortuneCoin.longRangePullDistance.get();
+		return Config.COMMON.items.fortuneCoin.longRangePullDistance.get();
 	}
 
 	private double getStandardPullDistance() {
-		return Settings.COMMON.items.fortuneCoin.standardPullDistance.get();
+		return Config.COMMON.items.fortuneCoin.standardPullDistance.get();
 	}
 
 	@Override

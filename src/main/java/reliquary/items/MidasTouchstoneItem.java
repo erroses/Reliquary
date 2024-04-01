@@ -3,20 +3,10 @@ package reliquary.items;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
-import net.minecraft.world.item.ArmorMaterials;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.TieredItem;
-import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import reliquary.reference.Settings;
+import net.neoforged.neoforge.items.IItemHandler;
+import reliquary.reference.Config;
 import reliquary.util.InventoryHelper;
 import reliquary.util.NBTHelper;
 import reliquary.util.RegistryHelper;
@@ -45,7 +35,6 @@ public class MidasTouchstoneItem extends ToggleableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack touchstone, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		tooltipBuilder.charge(this, ".tooltip2", NBTHelper.getInt(GLOWSTONE_TAG, touchstone));
 		if (isEnabled(touchstone)) {
@@ -81,20 +70,22 @@ public class MidasTouchstoneItem extends ToggleableItem {
 	}
 
 	private void doRepairAndDamageTouchstone(ItemStack touchstone, Player player) {
-		List<String> goldItems = Settings.COMMON.items.midasTouchstone.goldItems.get();
+		List<String> goldItems = Config.COMMON.items.midasTouchstone.goldItems.get();
 
-		InventoryHelper.getItemHandlerFrom(player, null).ifPresent(itemHandler -> {
-			for (int slot = 0; slot < itemHandler.getSlots(); slot++) {
-				ItemStack stack = itemHandler.getStackInSlot(slot);
-				Item item = stack.getItem();
+		IItemHandler playerInventory = InventoryHelper.getItemHandlerFrom(player, null);
+		if (playerInventory == null) {
+			return;
+		}
+		for (int slot = 0; slot < playerInventory.getSlots(); slot++) {
+			ItemStack stack = playerInventory.getStackInSlot(slot);
+			Item item = stack.getItem();
 
-				if (stack.getDamageValue() <= 0 || !stack.getItem().canBeDepleted()) {
-					continue;
-				}
-
-				tryRepairingItem(touchstone, player, goldItems, stack, item);
+			if (stack.getDamageValue() <= 0 || !stack.getItem().canBeDepleted()) {
+				continue;
 			}
-		});
+
+			tryRepairingItem(touchstone, player, goldItems, stack, item);
+		}
 	}
 
 	private void tryRepairingItem(ItemStack touchstone, Player player, List<String> goldItems, ItemStack stack, Item item) {
@@ -122,15 +113,15 @@ public class MidasTouchstoneItem extends ToggleableItem {
 	}
 
 	private int getGlowStoneCost() {
-		return Settings.COMMON.items.midasTouchstone.glowstoneCost.get();
+		return Config.COMMON.items.midasTouchstone.glowstoneCost.get();
 	}
 
 	private int getGlowStoneWorth() {
-		return Settings.COMMON.items.midasTouchstone.glowstoneWorth.get();
+		return Config.COMMON.items.midasTouchstone.glowstoneWorth.get();
 	}
 
 	private int getGlowstoneLimit() {
-		return Settings.COMMON.items.midasTouchstone.glowstoneLimit.get();
+		return Config.COMMON.items.midasTouchstone.glowstoneLimit.get();
 	}
 
 	private Optional<IRepairableItem> getRepairableItem(Class<? extends Item> item) {

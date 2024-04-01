@@ -11,28 +11,24 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 import reliquary.items.ToggleableItem;
 import reliquary.items.util.ICuriosItem;
 
 import javax.annotation.Nullable;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class InventoryHelper {
-	private InventoryHelper() {}
+	private InventoryHelper() {
+	}
 
 	private static final Set<BiFunction<Player, ICuriosItem.Type, IItemHandler>> baublesItemHandlerFactories = new HashSet<>();
 
@@ -80,9 +76,7 @@ public class InventoryHelper {
 	}
 
 	public static ItemStack consumeItemStack(Predicate<ItemStack> itemMatches, Player player, int count) {
-		return player.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP)
-				.map(inventory -> extractFromInventory(itemMatches, count, inventory, false))
-				.orElse(ItemStack.EMPTY);
+		return extractFromInventory(itemMatches, count, getItemHandlerFrom(player), false);
 	}
 
 	public static ItemStack extractFromInventory(Predicate<ItemStack> itemMatches, int count, IItemHandler inventory, boolean simulate) {
@@ -186,32 +180,61 @@ public class InventoryHelper {
 		return maxToRemove - remaining;
 	}
 
-	public static LazyOptional<IItemHandler> getInventoryAtPos(Level world, BlockPos pos) {
-		return getInventoryAtPos(world, pos, null);
+	public static void runOnInventoryAt(Level world, BlockPos pos, Consumer<IItemHandler> run) {
+		IItemHandler itemHandler = getInventoryAtPos(world, pos, null);
+		if (itemHandler == null) {
+			return;
+		}
+		run.accept(itemHandler);
 	}
 
-	public static LazyOptional<IItemHandler> getInventoryAtPos(Level world, BlockPos pos, @Nullable Direction side) {
-		return WorldHelper.getBlockEntity(world, pos).map(te -> InventoryHelper.getItemHandlerFrom(te, side)).orElse(LazyOptional.empty());
+	@Nullable
+	public static IItemHandler getInventoryAtPos(Level level, BlockPos pos, @Nullable Direction side) {
+		return level.getCapability(Capabilities.ItemHandler.BLOCK, pos, side);
 	}
 
-	public static LazyOptional<IItemHandler> getItemHandlerFrom(Player player, @Nullable Direction side) {
-		return player.getCapability(ForgeCapabilities.ITEM_HANDLER, side);
+	@Nullable
+	public static IItemHandler getItemHandlerFrom(Player player, @Nullable Direction side) {
+		return player.getCapability(Capabilities.ItemHandler.ENTITY);
 	}
 
-	public static LazyOptional<IItemHandler> getItemHandlerFrom(Player player) {
-		return getItemHandlerFrom(player, Direction.UP);
+	public static IItemHandler getItemHandlerFrom(Player player) {
+		return new PlayerMainInvWrapper(player.getInventory());
 	}
 
-	public static LazyOptional<IItemHandler> getItemHandlerFrom(BlockEntity te) {
-		return getItemHandlerFrom(te, null);
+	public static void executeOnItemHandlerAt(Level level, BlockPos pos, BlockState state, BlockEntity blockEntity, Consumer<IItemHandler> run) {
+		executeOnItemHandlerAt(level, pos, state, blockEntity, handler -> {
+			run.accept(handler);
+			return null;
+		}, null);
 	}
 
-	private static LazyOptional<IItemHandler> getItemHandlerFrom(BlockEntity te, @Nullable Direction side) {
-		return te.getCapability(ForgeCapabilities.ITEM_HANDLER, side);
+	public static <T> T executeOnItemHandlerAt(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, Function<IItemHandler, T> run, @Nullable T defaultReturnValue) {
+		return executeOnItemHandlerAt(level, pos, state, blockEntity, null, run, defaultReturnValue);
+	}
+
+	private static <T> T executeOnItemHandlerAt(Level level, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction side, Function<IItemHandler, T> run, @Nullable T defaultReturnValue) {
+		IItemHandler itemHandler = level.getCapability(Capabilities.ItemHandler.BLOCK, pos, state, blockEntity, side);
+
+		if (itemHandler != null) {
+			return run.apply(itemHandler);
+		}
+
+		//noinspection DataFlowIssue - sometimes null may be produced based on default value being null, ignoring here not to have to deal with nullability check everywhere this is used
+		return defaultReturnValue;
 	}
 
 	public static int insertIntoInventory(ItemStack contents, IItemHandler inventory) {
 		return tryToAddToInventory(contents, inventory, contents.getCount());
+	}
+
+	public static int tryToAddToInventoryAtPos(ItemStack contents, Level level, BlockPos pos, Direction side, int maxToAdd) {
+		IItemHandler inventory = getInventoryAtPos(level, pos, side);
+		if (inventory == null) {
+			return 0;
+		}
+
+		return tryToAddToInventory(contents, inventory, maxToAdd);
 	}
 
 	public static int tryToAddToInventory(ItemStack contents, IItemHandler inventory, int maxToAdd) {
@@ -356,22 +379,26 @@ public class InventoryHelper {
 	}
 
 	public static boolean hasItemHandler(Level world, BlockPos pos) {
-		return WorldHelper.getBlockEntity(world, pos).map(InventoryHelper::hasItemHandler).orElse(false);
-	}
-
-	private static boolean hasItemHandler(BlockEntity te) {
-		return te.getCapability(ForgeCapabilities.ITEM_HANDLER, null).isPresent();
+		return executeOnItemHandlerAt(world, pos, world.getBlockState(pos), null, handler -> true, false);
 	}
 
 	public static <T extends IItemHandler> void runOnItemHandler(ItemStack stack, Consumer<T> run, Class<T> itemHandlerClass) {
-		getItemHandler(stack, itemHandlerClass).ifPresent(run);
+		T itemHandler = getItemHandler(stack, itemHandlerClass);
+		if (itemHandler != null) {
+			run.accept(itemHandler);
+		}
 	}
 
-	private static <T extends IItemHandler> Optional<T> getItemHandler(ItemStack stack, Class<T> itemHandlerClass) {
-		return stack.getCapability(ForgeCapabilities.ITEM_HANDLER, null).filter(itemHandlerClass::isInstance).map(itemHandlerClass::cast);
+	@Nullable
+	private static <T extends IItemHandler> T getItemHandler(ItemStack stack, Class<T> itemHandlerClass) {
+		return itemHandlerClass.cast(stack.getCapability(Capabilities.ItemHandler.ITEM));
 	}
 
 	public static <R, T extends IItemHandler> Optional<R> getFromHandler(ItemStack stack, Function<T, R> get, Class<T> itemHandlerClass) {
-		return getItemHandler(stack, itemHandlerClass).map(get);
+		T itemHandler = getItemHandler(stack, itemHandlerClass);
+		if (itemHandler != null) {
+			return Optional.of(get.apply(itemHandler));
+		}
+		return Optional.empty();
 	}
 }

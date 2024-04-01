@@ -11,7 +11,7 @@ import reliquary.api.IPedestalActionItemWrapper;
 import reliquary.init.ModItems;
 import reliquary.init.ModPotions;
 import reliquary.items.RendingGaleItem;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 
 import java.util.List;
 
@@ -52,11 +52,11 @@ public class PedestalRendingGaleWrapper implements IPedestalActionItemWrapper {
 
 	private void pushEntities(ItemStack stack, Level world, BlockPos pos, RendingGaleItem rendingGale, boolean b) {
 		rendingGale.doRadialPush(world, pos.getX(), pos.getY(), pos.getZ(), null, b);
-		ModItems.RENDING_GALE.get().setFeatherCount(stack, ModItems.RENDING_GALE.get().getFeatherCount(stack) - (int) (TICKS_BETWEEN_PUSH_PULL_CHECKS / 20F * Settings.COMMON.items.rendingGale.pedestalCostPerSecond.get()), true);
+		ModItems.RENDING_GALE.get().setFeatherCount(stack, ModItems.RENDING_GALE.get().getFeatherCount(stack) - (int) (TICKS_BETWEEN_PUSH_PULL_CHECKS / 20F * Config.COMMON.items.rendingGale.pedestalCostPerSecond.get()));
 	}
 
 	private void buffPlayersWithFlight(ItemStack stack, Level world, BlockPos pos) {
-		int flightRange = Settings.COMMON.items.rendingGale.pedestalFlightRange.get();
+		int flightRange = Config.COMMON.items.rendingGale.pedestalFlightRange.get();
 
 		if (ModItems.RENDING_GALE.get().getFeatherCount(stack) >= (RendingGaleItem.getChargeCost() * SECONDS_BETWEEN_BUFF_CHECKS)) {
 			List<Player> players = world.getEntitiesOfClass(Player.class, new AABB((double) pos.getX() - flightRange, (double) pos.getY() - flightRange, (double) pos.getZ() - flightRange, (double) pos.getX() + flightRange, (double) pos.getY() + flightRange, (double) pos.getZ() + flightRange));
@@ -65,7 +65,7 @@ public class PedestalRendingGaleWrapper implements IPedestalActionItemWrapper {
 				for (Player player : players) {
 					player.addEffect(new MobEffectInstance(ModPotions.FLIGHT_POTION.get(), 20 * 20));
 				}
-				ModItems.RENDING_GALE.get().setFeatherCount(stack, ModItems.RENDING_GALE.get().getFeatherCount(stack) - (SECONDS_BETWEEN_BUFF_CHECKS * Settings.COMMON.items.rendingGale.pedestalCostPerSecond.get()), true);
+				ModItems.RENDING_GALE.get().setFeatherCount(stack, ModItems.RENDING_GALE.get().getFeatherCount(stack) - (SECONDS_BETWEEN_BUFF_CHECKS * Config.COMMON.items.rendingGale.pedestalCostPerSecond.get()));
 			}
 		}
 	}

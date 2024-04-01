@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_infernal_tear",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_infernal_tear"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:hero_medallion"
     ]
-  },
-  "sends_telemetry_event": false
+  }
 }

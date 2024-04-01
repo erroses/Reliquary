@@ -25,12 +25,10 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
 import reliquary.blocks.tile.PedestalBlockEntity;
 import reliquary.init.ModBlocks;
 import reliquary.pedestal.PedestalRegistry;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.BlockEntityHelper;
 import reliquary.util.WorldHelper;
 
@@ -67,7 +65,7 @@ public class PedestalBlock extends PassivePedestalBlock {
 
 	@Override
 	protected boolean isDisabled() {
-		return Boolean.TRUE.equals(Settings.COMMON.disable.disablePedestal.get());
+		return Boolean.TRUE.equals(Config.COMMON.disable.disablePedestal.get());
 	}
 
 	@Override
@@ -112,7 +110,6 @@ public class PedestalBlock extends PassivePedestalBlock {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public void animateTick(BlockState state, Level world, BlockPos pos, RandomSource rand) {
 		if (Boolean.TRUE.equals(state.getValue(ENABLED)) && rand.nextInt(2) == 1) {
 			Direction dir = Direction.from2DDataValue(rand.nextInt(4));
@@ -133,7 +130,7 @@ public class PedestalBlock extends PassivePedestalBlock {
 	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		ItemStack heldItem = player.getItemInHand(hand);
 		if (level.isClientSide) {
-			return !heldItem.isEmpty() || player.isCrouching() ? InteractionResult.SUCCESS : InteractionResult.CONSUME;
+			return InteractionResult.CONSUME;
 		}
 
 		return WorldHelper.getBlockEntity(level, pos, PedestalBlockEntity.class).map(pedestal -> {

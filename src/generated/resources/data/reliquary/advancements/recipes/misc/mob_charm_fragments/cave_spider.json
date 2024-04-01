@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_chelicerae",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_chelicerae"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_fragments/cave_spider"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

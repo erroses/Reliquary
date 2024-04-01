@@ -3,7 +3,6 @@ package reliquary.items;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -20,16 +19,12 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandler;
 import reliquary.api.IPedestal;
 import reliquary.api.IPedestalActionItem;
 import reliquary.items.util.IScrollableItem;
-import reliquary.items.util.fluid.FluidHandlerHeroMedallion;
+import reliquary.reference.Config;
 import reliquary.reference.Reference;
-import reliquary.reference.Settings;
 import reliquary.util.InventoryHelper;
 import reliquary.util.NBTHelper;
 import reliquary.util.TooltipBuilder;
@@ -51,7 +46,6 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	public boolean isFoil(ItemStack stack) {
 		return NBTHelper.getBoolean("enabled", stack);
 	}
@@ -62,7 +56,6 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack medallion, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		int experience = NBTHelper.getInt(EXPERIENCE_TAG, medallion);
 		int levels = XpHelper.getLevelForExperience(experience);
@@ -104,10 +97,16 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 	}
 
 	private void decreasePlayerExperience(Player player, int pointsToRemove) {
+		correctTotalExperience(player);
 		player.totalExperience -= pointsToRemove;
 		int newLevel = XpHelper.getLevelForExperience(player.totalExperience);
 		player.experienceLevel = newLevel;
 		player.experienceProgress = (float) (player.totalExperience - XpHelper.getExperienceForLevel(newLevel)) / player.getXpNeededForNextLevel();
+	}
+
+	private static void correctTotalExperience(Player player) {
+		//even vanilla doesn't seem to update this value properly when removing levels for enchanting / in anvil so fixing before working with it
+		player.totalExperience = XpHelper.getExperienceForLevel(player.experienceLevel) + (int) (XpHelper.getExperienceLimitOnLevel(player.experienceLevel) * player.experienceProgress);
 	}
 
 	private void decreaseMedallionExperience(ItemStack stack, int experience) {
@@ -186,19 +185,14 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 	}
 
 	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-		return new FluidHandlerHeroMedallion(stack);
-	}
-
-	@Override
 	public void update(ItemStack stack, Level level, IPedestal pedestal) {
-		List<BlockPos> posInRange = pedestal.getPedestalsInRange(level, Settings.COMMON.items.heroMedallion.pedestalRange.get());
+		List<BlockPos> posInRange = pedestal.getPedestalsInRange(level, Config.COMMON.items.heroMedallion.pedestalRange.get());
 		for (BlockPos pedestalPos : posInRange) {
-			InventoryHelper.getInventoryAtPos(level, pedestalPos).ifPresent(pedestalInventory -> {
+			InventoryHelper.runOnInventoryAt(level, pedestalPos, pedestalInventory -> {
 				List<ItemStack> toRepair = getMendingItemsForRepair(pedestalInventory);
 
 				for (ItemStack itemToRepair : toRepair) {
-					int xpToRepair = Math.min(Settings.COMMON.items.heroMedallion.pedestalRepairStepXP.get(), getExperience(stack));
+					int xpToRepair = Math.min(Config.COMMON.items.heroMedallion.pedestalRepairStepXP.get(), getExperience(stack));
 					int durabilityToRepair = Math.min(XpHelper.xpToDurability(xpToRepair), itemToRepair.getDamageValue());
 
 					setExperience(stack, getExperience(stack) - XpHelper.durabilityToXp(durabilityToRepair));
@@ -206,7 +200,7 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 				}
 			});
 		}
-		pedestal.setActionCoolDown(Settings.COMMON.items.heroMedallion.pedestalCoolDown.get());
+		pedestal.setActionCoolDown(Config.COMMON.items.heroMedallion.pedestalCoolDown.get());
 	}
 
 	private List<ItemStack> getMendingItemsForRepair(IItemHandler inventory) {

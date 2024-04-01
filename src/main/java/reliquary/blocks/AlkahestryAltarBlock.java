@@ -27,7 +27,7 @@ import reliquary.blocks.tile.AlkahestryAltarBlockEntity;
 import reliquary.init.ModBlocks;
 import reliquary.items.AlkahestryTomeItem;
 import reliquary.items.ICreativeTabItemGenerator;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.BlockEntityHelper;
 
 import javax.annotation.Nullable;
@@ -52,7 +52,7 @@ public class AlkahestryAltarBlock extends Block implements EntityBlock, ICreativ
 	}
 
 	private static int getAltarActiveLightLevel() {
-		return Settings.COMMON.blocks.altar.outputLightLevelWhileActive.get();
+		return Config.COMMON.blocks.altar.outputLightLevelWhileActive.get();
 	}
 
 	@Override

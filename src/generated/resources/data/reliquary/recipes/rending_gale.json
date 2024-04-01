@@ -15,9 +15,10 @@
       "item": "minecraft:stick"
     },
     "V": {
-      "type": "forge:nbt",
-      "count": 1,
-      "item": "reliquary:void_tear"
+      "type": "neoforge:nbt",
+      "item": "reliquary:void_tear",
+      "strict": true,
+      "tag": "{}"
     }
   },
   "pattern": [
@@ -27,6 +28,5 @@
   ],
   "result": {
     "item": "reliquary:rending_gale"
-  },
-  "show_notification": true
+  }
 }

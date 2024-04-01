@@ -22,14 +22,13 @@
   },
   "requirements": [
     [
-      "has_withered_rib",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_withered_rib"
     ]
   ],
   "rewards": {
     "recipes": [
       "reliquary:mob_charm_fragments/wither_skeleton"
     ]
-  },
-  "sends_telemetry_event": true
+  }
 }

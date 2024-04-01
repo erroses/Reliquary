@@ -1,19 +1,13 @@
 {
-  "type": "forge:conditional",
-  "recipes": [
+  "neoforge:conditions": [
     {
-      "conditions": [
-        {
-          "type": "reliquary:alkahestry_enabled"
-        }
-      ],
-      "recipe": {
-        "type": "reliquary:alkahestry_drain",
-        "charge": 1,
-        "result": {
-          "item": "minecraft:redstone"
-        }
-      }
+      "type": "reliquary:alkahestry_enabled"
     }
-  ]
+  ],
+  "type": "reliquary:alkahestry_drain",
+  "charge": 1,
+  "result": {
+    "Count": 1,
+    "id": "minecraft:redstone"
+  }
 }

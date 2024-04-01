@@ -1,5 +1,6 @@
 package reliquary.items;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -11,26 +12,20 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
 import reliquary.entities.shot.ShotEntityBase;
 import reliquary.init.ModItems;
 import reliquary.init.ModSounds;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.NBTHelper;
 import reliquary.util.RegistryHelper;
 import reliquary.util.TooltipBuilder;
 import reliquary.util.potions.XRPotionHelper;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class HandgunItem extends ItemBase {
@@ -51,7 +46,7 @@ public class HandgunItem extends ItemBase {
 	}
 
 	public HandgunItem() {
-		super(new Properties().stacksTo(1), Settings.COMMON.disable.disableHandgun::get);
+		super(new Properties().stacksTo(1), Config.COMMON.disable.disableHandgun);
 	}
 
 	private short getBulletCount(ItemStack handgun) {
@@ -105,9 +100,7 @@ public class HandgunItem extends ItemBase {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack handgun, @Nullable Level world, TooltipBuilder tooltipBuilder) {
-		ItemStack bullets = getBulletStack(handgun);
 		if (hasAmmo(handgun)) {
 			tooltipBuilder
 					.data(this, ".tooltip2", getBulletCount(handgun), getMagazineName(handgun))
@@ -121,8 +114,8 @@ public class HandgunItem extends ItemBase {
 	}
 
 	private String getMagazineName(ItemStack handgun) {
-		Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(getMagazineType(handgun)));
-		return item != null ? item.getName(new ItemStack(item)).getString() : "";
+		Item item = BuiltInRegistries.ITEM.get(new ResourceLocation(getMagazineType(handgun)));
+		return item != Items.AIR ? item.getName(new ItemStack(item)).getString() : "";
 	}
 
 	@Override
@@ -246,12 +239,12 @@ public class HandgunItem extends ItemBase {
 	}
 
 	private int getPlayerFiringCooldown(Player player) {
-		return Settings.COMMON.items.handgun.maxSkillLevel.get() + HANDGUN_COOLDOWN_SKILL_OFFSET
-				- Math.min(player.experienceLevel, Settings.COMMON.items.handgun.maxSkillLevel.get());
+		return Config.COMMON.items.handgun.maxSkillLevel.get() + HANDGUN_COOLDOWN_SKILL_OFFSET
+				- Math.min(player.experienceLevel, Config.COMMON.items.handgun.maxSkillLevel.get());
 	}
 
 	private int getItemUseDuration() {
-		return HANDGUN_RELOAD_SKILL_OFFSET + Settings.COMMON.items.handgun.maxSkillLevel.get();
+		return HANDGUN_RELOAD_SKILL_OFFSET + Config.COMMON.items.handgun.maxSkillLevel.get();
 	}
 
 	private void fireBullet(ItemStack handgun, Level world, Player player, InteractionHand hand) {
@@ -320,6 +313,6 @@ public class HandgunItem extends ItemBase {
 	}
 
 	private int getPlayerReloadDelay(Player player) {
-		return Settings.COMMON.items.handgun.maxSkillLevel.get() + HANDGUN_RELOAD_SKILL_OFFSET - Math.min(player.experienceLevel, Settings.COMMON.items.handgun.maxSkillLevel.get());
+		return Config.COMMON.items.handgun.maxSkillLevel.get() + HANDGUN_RELOAD_SKILL_OFFSET - Math.min(player.experienceLevel, Config.COMMON.items.handgun.maxSkillLevel.get());
 	}
 }

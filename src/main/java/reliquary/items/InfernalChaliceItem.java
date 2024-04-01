@@ -2,7 +2,6 @@ package reliquary.items;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -17,22 +16,17 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.event.entity.living.LivingAttackEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import reliquary.handler.CommonEventHandler;
 import reliquary.handler.HandlerPriority;
 import reliquary.handler.IPlayerHurtHandler;
 import reliquary.init.ModItems;
-import reliquary.items.util.fluid.FluidHandlerInfernalChalice;
-import reliquary.reference.Settings;
+import reliquary.reference.Config;
 import reliquary.util.InventoryHelper;
 import reliquary.util.NBTHelper;
 import reliquary.util.TooltipBuilder;
@@ -53,7 +47,7 @@ public class InfernalChaliceItem extends ToggleableItem {
 
 			@Override
 			public boolean apply(Player player, LivingAttackEvent event) {
-				player.causeFoodExhaustion(event.getAmount() * ((float) Settings.COMMON.items.infernalChalice.hungerCostPercent.get() / 100F));
+				player.causeFoodExhaustion(event.getAmount() * ((float) Config.COMMON.items.infernalChalice.hungerCostPercent.get() / 100F));
 				return true;
 			}
 
@@ -65,7 +59,6 @@ public class InfernalChaliceItem extends ToggleableItem {
 	}
 
 	@Override
-	@OnlyIn(Dist.CLIENT)
 	protected void addMoreInformation(ItemStack chalice, @Nullable Level world, TooltipBuilder tooltipBuilder) {
 		tooltipBuilder.charge(this, ".tooltip2", NBTHelper.getInt("fluidStacks", chalice));
 		if (isEnabled(chalice)) {
@@ -102,7 +95,12 @@ public class InfernalChaliceItem extends ToggleableItem {
 				return new InteractionResultHolder<>(InteractionResult.PASS, stack);
 			}
 
-			return getFluidHandler(stack).map(fluidHandler -> interactWithFluidHandler(world, player, stack, pos, face, fluidHandler)).orElse(new InteractionResultHolder<>(InteractionResult.FAIL, stack));
+			IFluidHandlerItem fluidHandler = stack.getCapability(Capabilities.FluidHandler.ITEM);
+			if (fluidHandler == null) {
+				return new InteractionResultHolder<>(InteractionResult.FAIL, stack);
+			}
+
+			return interactWithFluidHandler(world, player, stack, pos, face, fluidHandler);
 		}
 	}
 
@@ -127,10 +125,6 @@ public class InfernalChaliceItem extends ToggleableItem {
 		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
 	}
 
-	private LazyOptional<IFluidHandlerItem> getFluidHandler(ItemStack stack) {
-		return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM, null);
-	}
-
 	private boolean tryPlaceContainedLiquid(Level world, BlockPos pos) {
 		BlockState blockState = world.getBlockState(pos);
 		if (!world.isEmptyBlock(pos) && blockState.isSolid()) {
@@ -139,10 +133,5 @@ public class InfernalChaliceItem extends ToggleableItem {
 			world.setBlock(pos, Blocks.LAVA.defaultBlockState(), 3);
 			return true;
 		}
-	}
-
-	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-		return new FluidHandlerInfernalChalice(stack);
 	}
 }
