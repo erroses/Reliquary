@@ -94,10 +94,14 @@ public class GlacialStaffItem extends IceMagusRodItem {
 				});
 	}
 
-	private void meltBlocks(ItemStack staff, Level world, Player player) {
-		if (!world.isClientSide) {
+	private void meltBlocks(ItemStack staff, Level level, Player player) {
+		if (!level.isClientSide) {
 			BlockPos playerPos = player.blockPosition();
 			for (BlockPos pos : getBlockLocations(staff)) {
+				if (!level.isLoaded(pos)) {
+					continue;
+				}
+
 				int xOff = Math.abs(playerPos.getX() - pos.getX());
 				int yOff = Math.abs(playerPos.getY() - pos.getY());
 				int zOff = Math.abs(playerPos.getZ() - pos.getZ());
@@ -106,7 +110,7 @@ public class GlacialStaffItem extends IceMagusRodItem {
 					continue;
 				}
 
-				doThawCheck(staff, pos, world);
+				doThawCheck(staff, pos, level);
 			}
 		}
 	}
