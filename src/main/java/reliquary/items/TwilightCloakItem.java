@@ -69,7 +69,7 @@ public class TwilightCloakItem extends ToggleableItem implements ICuriosItem {
 
 	private void onEntityTargetedEvent(LivingChangeTargetEvent event) {
 		if (shouldResetTarget(event.getNewTarget())) {
-			event.setNewTarget(null);
+			event.setCanceled(true);
 		}
 	}
 

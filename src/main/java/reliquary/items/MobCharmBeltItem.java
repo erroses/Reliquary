@@ -19,6 +19,9 @@ import reliquary.common.gui.MobCharmBeltMenu;
 import reliquary.items.util.ICuriosItem;
 import reliquary.reference.Settings;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class MobCharmBeltItem extends ItemBase implements ICuriosItem {
 	private static final String SLOTS_TAG = "Slots";
 
@@ -176,5 +179,15 @@ public class MobCharmBeltItem extends ItemBase implements ICuriosItem {
 		}
 
 		return ItemStack.EMPTY;
+	}
+
+	public Set<String> getCharmRegistryNames(ItemStack slotStack) {
+		Set<String> ret = new HashSet<>();
+		ListTag mobCharms = slotStack.getOrCreateTag().getList(SLOTS_TAG, Tag.TAG_COMPOUND);
+		for (int i = 0; i < mobCharms.size(); i++) {
+			ItemStack charmStack = ItemStack.of(mobCharms.getCompound(i));
+			ret.add(MobCharmItem.getEntityRegistryName(charmStack));
+		}
+		return ret;
 	}
 }
