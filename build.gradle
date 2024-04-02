@@ -109,19 +109,6 @@ tasks.withType(ProcessResources).configureEach {
     }
 }
 
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        maven {
-            url "file://${project.projectDir}/repo"
-        }
-    }
-}
-
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
