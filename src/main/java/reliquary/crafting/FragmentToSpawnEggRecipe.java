@@ -9,9 +9,9 @@ import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.Level;
+import reliquary.init.ModItems;
 
 public class FragmentToSpawnEggRecipe extends ShapelessRecipe {
-	public static final Serializer SERIALIZER = new Serializer();
 	private final ShapelessRecipe recipeDelegate;
 
 	public FragmentToSpawnEggRecipe(ShapelessRecipe recipeDelegate) {
@@ -28,6 +28,11 @@ public class FragmentToSpawnEggRecipe extends ShapelessRecipe {
 	public ItemStack assemble(CraftingContainer inv, RegistryAccess registryAccess) {
 		return FragmentRecipeHelper.getRegistryName(inv).map(FragmentRecipeHelper::getSpawnEggStack)
 				.orElse(new ItemStack(FragmentRecipeHelper.FALL_BACK_SPAWN_EGG));
+	}
+
+	@Override
+	public RecipeSerializer<?> getSerializer() {
+		return ModItems.FRAGMENT_TO_SPAWN_EGG_SERIALIZER.get();
 	}
 
 	@Override
