@@ -4,20 +4,22 @@
       "type": "reliquary:spawn_egg_enabled"
     }
   ],
-  "type": "minecraft:crafting_shapeless",
-  "category": "misc",
-  "ingredients": [
-    {
-      "item": "reliquary:mob_charm_fragment"
-    },
-    {
-      "item": "reliquary:mob_charm_fragment"
-    },
-    {
-      "item": "minecraft:egg"
+  "type": "reliquary:fragment_to_spawn_egg",
+  "value": {
+    "category": "misc",
+    "ingredients": [
+      {
+        "item": "reliquary:mob_charm_fragment"
+      },
+      {
+        "item": "reliquary:mob_charm_fragment"
+      },
+      {
+        "item": "minecraft:egg"
+      }
+    ],
+    "result": {
+      "item": "minecraft:chicken_spawn_egg"
     }
-  ],
-  "result": {
-    "item": "minecraft:chicken_spawn_egg"
   }
 }
