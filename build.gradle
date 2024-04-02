@@ -3,7 +3,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '7.0.101'
-    id "org.sonarqube" version "3.3"
+    id "org.sonarqube" version "5.0.0.4638"
 }
 
 idea {
@@ -109,19 +109,6 @@ tasks.withType(ProcessResources).configureEach {
     }
 }
 
-publishing {
-    publications {
-        register('mavenJava', MavenPublication) {
-            from components.java
-        }
-    }
-    repositories {
-        maven {
-            url "file://${project.projectDir}/repo"
-        }
-    }
-}
-
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
@@ -147,7 +134,7 @@ static def getBuildNumber() {
 
 static def getStable() {
     if ((System.getenv("GITHUB_REF") == null || System.getenv("GITHUB_REF").endsWith("-dev"))) {
-        return "-SNAPSHOT"
+        return "-dev"
     }
     return ""
 }
