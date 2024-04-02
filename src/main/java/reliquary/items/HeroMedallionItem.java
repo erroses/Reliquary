@@ -94,7 +94,7 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 	}
 
 	private void drainExperienceLevel(ItemStack stack, Player player) {
-		int experiencePoints = player.isCreative() ? 100 : player.totalExperience - XpHelper.getExperienceForLevel(Math.max(getStopAtXpLevel(stack), player.experienceLevel - 1));
+		int experiencePoints = player.isCreative() ? 100 : XpHelper.getTotalPlayerExperience(player) - XpHelper.getExperienceForLevel(Math.max(getStopAtXpLevel(stack), player.experienceLevel - 1));
 		if (experiencePoints > 0) {
 			if (!player.isCreative()) {
 				decreasePlayerExperience(player, experiencePoints);
@@ -104,10 +104,16 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 	}
 
 	private void decreasePlayerExperience(Player player, int pointsToRemove) {
+		correctTotalExperience(player);
 		player.totalExperience -= pointsToRemove;
 		int newLevel = XpHelper.getLevelForExperience(player.totalExperience);
 		player.experienceLevel = newLevel;
 		player.experienceProgress = (float) (player.totalExperience - XpHelper.getExperienceForLevel(newLevel)) / player.getXpNeededForNextLevel();
+	}
+
+	private static void correctTotalExperience(Player player) {
+		//even vanilla doesn't seem to update this value properly when removing levels for enchanting / in anvil so fixing before working with it
+		player.totalExperience = XpHelper.getExperienceForLevel(player.experienceLevel) + (int) (XpHelper.getExperienceLimitOnLevel(player.experienceLevel) * player.experienceProgress);
 	}
 
 	private void decreaseMedallionExperience(ItemStack stack, int experience) {
@@ -153,7 +159,7 @@ public class HeroMedallionItem extends ToggleableItem implements IPedestalAction
 			spawnXpOnGround(stack, level, hitPos, xpLevels);
 		} else {
 			xpLevels += Math.round(player.experienceProgress);
-			int maxPoints = XpHelper.getExperienceForLevel(player.experienceLevel + xpLevels) - player.totalExperience;
+			int maxPoints = XpHelper.getExperienceForLevel(player.experienceLevel + xpLevels) - XpHelper.getTotalPlayerExperience(player);
 			int pointsToAdd = player.isCreative() ? maxPoints : Math.min(maxPoints, getExperience(stack));
 			increasePlayerExperience(player, pointsToAdd);
 			if (!player.isCreative()) {

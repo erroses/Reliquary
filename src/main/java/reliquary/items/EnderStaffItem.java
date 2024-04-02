@@ -169,7 +169,7 @@ public class EnderStaffItem extends ToggleableItem implements IScrollableItem {
 
 	@Override
 	public int getUseDuration(ItemStack stack) {
-		return getNodeWarpCastTime();
+		return getMode(stack) == Mode.NODE_WARP ? getNodeWarpCastTime() : 0;
 	}
 
 	@Override
