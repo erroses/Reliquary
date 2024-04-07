@@ -215,8 +215,8 @@ public class MobCharmItem extends ItemBase {
 	}
 
 	public static class CharmInventoryHandler {
-		private static long lastCharmCacheTime = -1;
-		private static final Map<UUID, Set<String>> charmsInInventoryCache = new HashMap<>();
+		private long lastCharmCacheTime = -1;
+		private final Map<UUID, Set<String>> charmsInInventoryCache = new HashMap<>();
 
 		protected Set<String> getCharmRegistryNames(Player player) {
 			Set<String> ret = new HashSet<>();
@@ -240,9 +240,8 @@ public class MobCharmItem extends ItemBase {
 			if (lastCharmCacheTime != player.level().getGameTime()) {
 				lastCharmCacheTime = player.level().getGameTime();
 				charmsInInventoryCache.clear();
-				charmsInInventoryCache.put(player.getUUID(), getCharmRegistryNames(player));
 			}
-			return charmsInInventoryCache.get(player.getUUID()).contains(registryName);
+			return charmsInInventoryCache.computeIfAbsent(player.getUUID(), u -> getCharmRegistryNames(player)).contains(registryName);
 		}
 
 		public boolean damagePlayersMobCharm(ServerPlayer player, String entityRegistryName) {
