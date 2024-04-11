@@ -92,7 +92,7 @@ public class MobCharmItem extends ItemBase {
 	}
 
 	private void onLivingUpdate(LivingEvent.LivingTickEvent event) {
-		if (!(event.getEntity() instanceof Mob entity)) {
+		if (event.getEntity().level().isClientSide() || !(event.getEntity() instanceof Mob entity)) {
 			return;
 		}
 
